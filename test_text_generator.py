@@ -4,7 +4,6 @@ import csv
 import numpy as np
 from keras.preprocessing.text import Tokenizer
 from itertools import islice
-from helper_functions import preprocess_sentence
 
 """def vectorize_sequences(sequences, dimension=20000):
     results = np.zeros((len(sequences),dimension))
@@ -12,7 +11,7 @@ from helper_functions import preprocess_sentence
         results[i, sequence] = 1
     return results"""
 
-class Training_Text_Generator(Sequence):
+class Test_Text_Generator(Sequence):
     def __init__(self, filename, batch_size, num_of_texts,num_of_words, tokenizer: Tokenizer, delimeter, num_of_classes,start_point=0):
         self.filename = filename
         self.batch_size = batch_size
@@ -36,7 +35,7 @@ class Training_Text_Generator(Sequence):
         with open(self.filename, encoding='utf-8', errors='ignore') as csvfile:
             for row in islice(csv.reader(csvfile, delimiter=self.delimeter), self.start_point+item*self.batch_size,None):
                 #print("getting item based on {}".format(item))
-                articles.append([int(row[0]),preprocess_sentence(row[1])])
+                articles.append([int(row[0]),row[1]])
                 if len(articles) >= self.batch_size:
                     break
 

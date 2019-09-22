@@ -1,6 +1,7 @@
 import os
 import sys
 import csv
+from gensim.parsing import preprocessing
 
 maxInt = sys.maxsize
 
@@ -15,11 +16,19 @@ while True:
         maxInt = int(maxInt/10)
 csv.field_size_limit(maxInt)
 
+stp_wrds = ['a', 'able', 'about', 'across', 'after', 'all', 'almost', 'also', 'am', 'among', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'because', 'been', 'but', 'by', 'can', 'cannot', 'could', 'dear', 'did', 'do', 'does', 'either', 'else', 'ever', 'every', 'for', 'from', 'get', 'got', 'had', 'has', 'have', 'he', 'her', 'hers', 'him', 'his', 'how', 'however', 'i', 'if', 'in', 'into', 'is', 'it', 'its', 'just', 'least', 'let', 'like', 'likely', 'may', 'me', 'might', 'most', 'must', 'my', 'neither', 'no', 'nor', 'not', 'of', 'off', 'often', 'on', 'only', 'or', 'other', 'our', 'own', 'rather', 'said', 'say', 'says', 'she', 'should', 'since', 'so', 'some', 'than', 'that', 'the', 'their', 'them', 'then', 'there', 'these', 'they', 'this', 'tis', 'to', 'too', 'twas', 'us', 'wants', 'was', 'we', 'were', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'will', 'with', 'would', 'yet', 'you', 'your']
 base_path = os.getcwd()
 dataset_folder = base_path + "\\datasets\\"
 train_file_name = "new-train"
 test_file_name = "new-test"
-skippable_datasets = [0,1,2,4,5,6]
+skippable_datasets = [1,4,5]#[0,1,2,4,5,6]
+
+
+def preprocess_sentence(sentence):
+    sentence = " ".join(word for word in sentence.split() if word not in stp_wrds)
+    #sentence = preprocessing.strip_short(sentence, 3)
+    sentence = preprocessing.stem_text(sentence)
+    return sentence
 
 class Dataset_Helper():
     def __init__(self):
@@ -82,6 +91,8 @@ class Dataset_Helper():
     def get_train_file_path(self):
         return self.get_dataset_folder_path()+train_file_name+".csv"
 
+
+
     def text_generator(self):
         for text in self.csv_train_file_stream:
             if text == "":
@@ -89,4 +100,4 @@ class Dataset_Helper():
             s = text.split(";")
             if len(s) <= 1:
                 break
-            yield s[1]
+            yield preprocess_sentence(s[1])

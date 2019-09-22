@@ -6,12 +6,12 @@ import json
 import time
 
 class LogWriter:
-    def __init__(self, log_file_path=None):
+    def __init__(self, log_file_path=None,log_file_desc=""):
         """
         :param log_file_path: path to a file into which logs will be written
         """
         if log_file_path is None:
-            self.path = os.getcwd()+"\\results\\"+str(int(round(time.time()) * 1000))+"\\"
+            self.path = os.getcwd()+"\\results\\"+str(int(round(time.time()) * 1000))+"{}\\".format(log_file_desc)
         else:
             self.path = log_file_path
         self.logs = ["*****************\n"]

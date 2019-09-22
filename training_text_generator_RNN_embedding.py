@@ -3,16 +3,11 @@ from keras.utils.np_utils import to_categorical
 import csv
 import numpy as np
 from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
 from itertools import islice
 from helper_functions import preprocess_sentence
 
-"""def vectorize_sequences(sequences, dimension=20000):
-    results = np.zeros((len(sequences),dimension))
-    for i, sequence in enumerate(sequences):
-        results[i, sequence] = 1
-    return results"""
-
-class Training_Text_Generator(Sequence):
+class Training_Text_Generator_RNN_Embedding(Sequence):
     def __init__(self, filename, batch_size, num_of_texts,num_of_words, tokenizer: Tokenizer, delimeter, num_of_classes,start_point=0):
         self.filename = filename
         self.batch_size = batch_size
@@ -47,4 +42,4 @@ class Training_Text_Generator(Sequence):
         labels = to_categorical(articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
         features = self.tokenizer.texts_to_matrix(articles[:,1],mode="binary") #vectorize_sequences(self.tokenizer.texts_to_sequences(articles[:,1]),self.num_of_words).astype(np.uint8)
         articles = None
-        return features, labels
+        return pad_sequences(features,maxlen=300),labels#np.reshape(features,(features.shape[0], 1, features.shape[1])), labels

@@ -12,7 +12,7 @@ from helper_functions import preprocess_sentence
         results[i, sequence] = 1
     return results"""
 
-class Training_Text_Generator(Sequence):
+class Training_Text_Generator_RNN(Sequence):
     def __init__(self, filename, batch_size, num_of_texts,num_of_words, tokenizer: Tokenizer, delimeter, num_of_classes,start_point=0):
         self.filename = filename
         self.batch_size = batch_size
@@ -47,4 +47,4 @@ class Training_Text_Generator(Sequence):
         labels = to_categorical(articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
         features = self.tokenizer.texts_to_matrix(articles[:,1],mode="binary") #vectorize_sequences(self.tokenizer.texts_to_sequences(articles[:,1]),self.num_of_words).astype(np.uint8)
         articles = None
-        return features, labels
+        return np.reshape(features,(features.shape[0], 1, features.shape[1])), labels

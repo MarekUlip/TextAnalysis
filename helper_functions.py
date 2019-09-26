@@ -21,7 +21,7 @@ base_path = os.getcwd()
 dataset_folder = base_path + "\\datasets\\"
 train_file_name = "new-train"
 test_file_name = "new-test"
-skippable_datasets = [1,4,5]#[0,1,2,4,5,6]
+skippable_datasets = [0,1,2,4,5,6,7]#[1,4,5]#
 
 
 def preprocess_sentence(sentence):
@@ -31,12 +31,13 @@ def preprocess_sentence(sentence):
     return sentence
 
 class Dataset_Helper():
-    def __init__(self):
+    def __init__(self,preprocess):
         self.dataset_position = -1
         self.dataset_info = []
         self.load_dataset_info()
         self.current_dataset = None
         self.csv_train_file_stream = None
+        self.preprocess = preprocess
 
     def load_dataset_info(self):
         with open(dataset_folder+"info.csv",encoding="utf-8", errors="ignore") as settings_file:
@@ -100,4 +101,7 @@ class Dataset_Helper():
             s = text.split(";")
             if len(s) <= 1:
                 break
-            yield preprocess_sentence(s[1])
+            if self.preprocess:
+                yield preprocess_sentence(s[1])
+            else:
+                yield s[1]

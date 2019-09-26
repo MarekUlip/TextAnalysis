@@ -4,14 +4,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 from keras.models import Sequential
 from keras.preprocessing.text import Tokenizer
-from keras.layers import Dense, Bidirectional, LSTM
+from keras.layers import Dense, Bidirectional, LSTM, Embedding, Flatten
 from keras.optimizers import RMSprop
 from keras.utils.np_utils import to_categorical
-from training_text_generator_RNN import Training_Text_Generator_RNN
+from training_text_generator_RNN_embedding import Training_Text_Generator_RNN_Embedding
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
+from embedding_loader import get_embedding_matrix
 import os
 import sys
+
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
@@ -20,10 +22,12 @@ config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
 sess = tf.Session(config=config)
 keras.backend.set_session(sess)
 
-datasets_helper = Dataset_Helper(preprocess=True)
-results_saver = LogWriter(log_file_desc="Bidirectional-recurrent-dropout-preprocessing")
+datasets_helper = Dataset_Helper(preprocess=False)
+results_saver = LogWriter(log_file_desc="RNN-GloVe-preprocessing")
 results = []
-num_of_words = 10000
+num_of_words = 1
+embedding_dim = 100
+max_len = 1
 
 while datasets_helper.next_dataset():
     results_saver.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
@@ -37,22 +41,25 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Done. Building model now.")
 
     model = Sequential()
-    enhanced_num_of_topics = int(np.ceil(datasets_helper.get_num_of_topics()*3)) #-datasets_helper.get_num_of_topics()/2))
-    model.add(Bidirectional(LSTM(enhanced_num_of_topics, activation='relu',dropout=0.1,recurrent_dropout=0.5, return_sequences=True),input_shape=(1,num_of_words)))
-    model.add(Bidirectional(LSTM(enhanced_num_of_topics, activation='relu', return_sequences=True)))
-    model.add(Bidirectional(LSTM(enhanced_num_of_topics, activation='relu')))
-    #model.add(Bidirectional(LSTM(enhanced_num_of_topics, activation='relu')))#,dropout=0.1,recurrent_dropout=0.5,input_shape=(num_of_words,),return_sequences=True))
+    enhanced_num_of_topics = 1#int(np.ceil(datasets_helper.get_num_of_topics())*2) #-datasets_helper.get_num_of_topics()/2))
+    model.add(Embedding(num_of_words, embedding_dim, input_length=max_len))
+    model.add(Flatten())
+    model.add(Dense(enhanced_num_of_topics, activation='relu'))
     #model.add(LSTM(40,activation='relu'))
     #model.add(Dense(enhanced_num_of_topics, activation='relu', input_shape=(num_of_words,)))
     #model.add(Dense(enhanced_num_of_topics, activation='relu'))
     model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
 
+    results_saver.add_log("Compiling model")
+    model.layers[0].set_weights([get_embedding_matrix(num_of_words,embedding_dim,tokenizer.word_index)])
+    model.layers[0].trainable = False
+
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
     results_saver.add_log("Done. Now lets get training.")
-    batch_size = 256
-    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()), epochs=15, validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
+    batch_size = 512
+    history = model.fit_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len), epochs=10, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),max_len,start_point=datasets_helper.get_num_of_train_texts()-validation_count))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
-    result = model.evaluate_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()))# model.evaluate(test_sequences,test_labels)
+    result = model.evaluate_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len))# model.evaluate(test_sequences,test_labels)
     print(result)
     result.append(datasets_helper.get_dataset_name())
     model.summary(print_fn=result.append)

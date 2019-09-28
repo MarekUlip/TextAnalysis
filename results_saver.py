@@ -6,12 +6,12 @@ import json
 import time
 
 class LogWriter:
-    def __init__(self, log_file_path=None,log_file_desc=""):
+    def __init__(self, log_file_path=None,log_file_desc="",base_time =str(int(round(time.time()) * 1000))):
         """
         :param log_file_path: path to a file into which logs will be written
         """
         if log_file_path is None:
-            self.path = os.getcwd()+"\\results\\"+str(int(round(time.time()) * 1000))+"{}\\".format(log_file_desc)
+            self.path = os.getcwd()+"\\results\\"+base_time+"{}\\".format(log_file_desc)
         else:
             self.path = log_file_path
         self.logs = ["*****************\n"]
@@ -103,3 +103,6 @@ class LogWriter:
         path = self.path + dataset_name+"\\"+ plot_name + ".png"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         return path
+
+    def apped_to_desc(self, desc):
+        self.path += desc

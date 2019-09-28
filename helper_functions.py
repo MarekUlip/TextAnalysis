@@ -19,9 +19,10 @@ csv.field_size_limit(maxInt)
 stp_wrds = ['a', 'able', 'about', 'across', 'after', 'all', 'almost', 'also', 'am', 'among', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'because', 'been', 'but', 'by', 'can', 'cannot', 'could', 'dear', 'did', 'do', 'does', 'either', 'else', 'ever', 'every', 'for', 'from', 'get', 'got', 'had', 'has', 'have', 'he', 'her', 'hers', 'him', 'his', 'how', 'however', 'i', 'if', 'in', 'into', 'is', 'it', 'its', 'just', 'least', 'let', 'like', 'likely', 'may', 'me', 'might', 'most', 'must', 'my', 'neither', 'no', 'nor', 'not', 'of', 'off', 'often', 'on', 'only', 'or', 'other', 'our', 'own', 'rather', 'said', 'say', 'says', 'she', 'should', 'since', 'so', 'some', 'than', 'that', 'the', 'their', 'them', 'then', 'there', 'these', 'they', 'this', 'tis', 'to', 'too', 'twas', 'us', 'wants', 'was', 'we', 'were', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'will', 'with', 'would', 'yet', 'you', 'your']
 base_path = os.getcwd()
 dataset_folder = base_path + "\\datasets\\"
+
 train_file_name = "new-train"
 test_file_name = "new-test"
-skippable_datasets = [0,1,2,4,5,6,7]#[1,4,5]#
+skippable_datasets = [0,1,2,4,5,6,7,8]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,5,6,7,8]#[1,4,5,6,7]#[1,4,5]#
 
 
 def preprocess_sentence(sentence):
@@ -64,6 +65,9 @@ class Dataset_Helper():
         self.change_dataset(self.dataset_position)
         return True
 
+    def reset_dataset_counter(self):
+        self.dataset_position = -1
+
     def get_num_of_test_texts(self):
         return int(self.current_dataset[4])
 
@@ -92,7 +96,10 @@ class Dataset_Helper():
     def get_train_file_path(self):
         return self.get_dataset_folder_path()+train_file_name+".csv"
 
-
+    def get_tensor_board_path(self):
+        path = base_path + "\\tensorBoard\\"
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        return path
 
     def text_generator(self):
         for text in self.csv_train_file_stream:

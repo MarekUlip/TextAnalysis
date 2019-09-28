@@ -41,6 +41,6 @@ class Training_Text_Generator_RNN_Embedding(Sequence):
             print("Working around...")
             articles = np.array([[0,"fgdssdgdsfgdsfgdsfg"],[1,"fgdssdgdsfgdsfgdsfg"]])
         labels = to_categorical(articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
-        features = self.tokenizer.texts_to_matrix(articles[:,1],mode="binary") #vectorize_sequences(self.tokenizer.texts_to_sequences(articles[:,1]),self.num_of_words).astype(np.uint8)
+        features = self.tokenizer.texts_to_sequences(articles[:,1]) #vectorize_sequences(self.tokenizer.texts_to_sequences(articles[:,1]),self.num_of_words).astype(np.uint8)
         articles = None
         return pad_sequences(features,maxlen=self.max_len),labels#np.reshape(features,(features.shape[0], 1, features.shape[1])), labels

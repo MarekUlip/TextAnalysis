@@ -71,3 +71,4 @@ fabric.properties
 /results
 /thrash
 /embeddings
+/tensorBoard

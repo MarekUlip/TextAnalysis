@@ -36,7 +36,7 @@ class Training_Text_Generator_RNN(Sequence):
         with open(self.filename, encoding='utf-8', errors='ignore') as csvfile:
             for row in islice(csv.reader(csvfile, delimiter=self.delimeter), self.start_point+item*self.batch_size,None):
                 #print("getting item based on {}".format(item))
-                articles.append([int(row[0]),preprocess_sentence(row[1])])
+                articles.append([int(row[0]),row[1]])#preprocess_sentence(row[1])])
                 if len(articles) >= self.batch_size:
                     break
 

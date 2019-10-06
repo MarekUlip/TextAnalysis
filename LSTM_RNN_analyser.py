@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from keras.models import Sequential
 from keras.preprocessing.text import Tokenizer
-from keras.layers import Dense, SimpleRNN, LSTM
+from keras.layers import Dense, SimpleRNN, LSTM, RepeatVector
 from keras.optimizers import RMSprop
 from keras.utils.np_utils import to_categorical
 from training_text_generator_RNN import Training_Text_Generator_RNN
@@ -38,9 +38,10 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Done. Building model now.")
 
     model = Sequential()
-    enhanced_num_of_topics = int(np.ceil(datasets_helper.get_num_of_topics()*2))#-datasets_helper.get_num_of_topics()/2))
-    model.add(LSTM(128,input_shape=(1,num_of_words),activation='relu',return_sequences=True))
-    model.add(LSTM(128,activation='relu'))
+    enhanced_num_of_topics = 128#int(np.ceil(datasets_helper.get_num_of_topics()*2))#-datasets_helper.get_num_of_topics()/2))
+    model.add(LSTM(enhanced_num_of_topics,input_shape=(1,num_of_words),activation='relu'))
+    model.add(RepeatVector(3))
+    model.add(LSTM(enhanced_num_of_topics,activation='relu'))
     #model.add(Dense(enhanced_num_of_topics, activation='relu', input_shape=(num_of_words,)))
     #model.add(Dense(enhanced_num_of_topics, activation='relu'))
     model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
@@ -48,8 +49,8 @@ while datasets_helper.next_dataset():
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
     plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
     results_saver.add_log("Done. Now lets get training.")
-    batch_size = 256
-    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()), epochs=10, validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
+    batch_size = 128
+    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()), epochs=15, validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
     result = model.evaluate_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()))# model.evaluate(test_sequences,test_labels)
     print(result)

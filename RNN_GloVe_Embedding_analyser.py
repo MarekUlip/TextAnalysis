@@ -27,9 +27,9 @@ datasets_helper = Dataset_Helper(preprocess=False)
 
 num_of_words = 10000
 #embedding_dim = 50
-max_len = 300
-for embedding_dim in [50]:
-    results_saver = LogWriter(log_file_desc="RNN-GloVe{}-preprocessing".format(embedding_dim))
+max_len = 400
+for embedding_dim in [200]:
+    results_saver = LogWriter(log_file_desc="RNN-GloVe{}-preprocessing-more-neurons-epochs".format(embedding_dim))
     results = []
 
     while datasets_helper.next_dataset():
@@ -44,7 +44,7 @@ for embedding_dim in [50]:
         results_saver.add_log("Done. Building model now.")
 
         model = Sequential()
-        enhanced_num_of_topics = int(np.ceil(datasets_helper.get_num_of_topics())*2.5) #-datasets_helper.get_num_of_topics()/2))
+        enhanced_num_of_topics = 128#int(np.ceil(datasets_helper.get_num_of_topics())*2.5) #-datasets_helper.get_num_of_topics()/2))
         model.add(Embedding(num_of_words, embedding_dim))
         model.add(LSTM(enhanced_num_of_topics, return_sequences=True))
         #model.add(LSTM(enhanced_num_of_topics, return_sequences=True))
@@ -67,9 +67,10 @@ for embedding_dim in [50]:
         model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
         plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
         results_saver.add_log("Done. Now lets get training.")
-        batch_size = 128
+        batch_size = 256
+        num_of_epochs = 30
         #callbacks = [keras.callbacks.TensorBoard(log_dir=datasets_helper.get_tensor_board_path())]
-        history = model.fit_generator( generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len), epochs=10, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),max_len,start_point=datasets_helper.get_num_of_train_texts()-validation_count))
+        history = model.fit_generator( generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len), epochs=num_of_epochs, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),max_len,start_point=datasets_helper.get_num_of_train_texts()-validation_count))
         #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
         result = model.evaluate_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len))# model.evaluate(test_sequences,test_labels)
         print(result)

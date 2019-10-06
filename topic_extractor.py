@@ -1,4 +1,4 @@
-"""import keras
+import keras
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,14 +7,18 @@ from keras.preprocessing.text import Tokenizer
 from keras.layers import Dense, Bidirectional, LSTM, Embedding, Flatten
 from keras.optimizers import RMSprop
 from keras.utils.np_utils import to_categorical
+from keras.preprocessing.sequence import pad_sequences
+
+from embedding_loader import get_embedding_matrix
 from training_text_generator_RNN_embedding import Training_Text_Generator_RNN_Embedding
-from keras.utils import plot_model"""
+from keras.utils import plot_model
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 import os
 import sys
 from gensim.models import LdaModel
 from text_generators.gensim_text_generator import GensimTextGenerator
+from scipy import spatial
 
 
 file_dir = os.path.dirname(__file__)
@@ -28,7 +32,7 @@ datasets_helper = Dataset_Helper(preprocess=preprocess)
 
 num_of_words = 10000
 #embedding_dim = 50
-max_len = 300
+max_len = 10
 
 results_saver = LogWriter(log_file_desc="Topic-Extraction")
 results = []
@@ -46,6 +50,7 @@ def extract_important_words(topics, keep_values=True):
                 d[i].append(tuple(y.split("*")))
             else:
                 d[i].append(y.split("*")[1])
+        d[i] = " ".join(d[i])
         i += 1
     return d
 
@@ -56,13 +61,17 @@ def get_topics(model, topic_word_count):
     """
     return model.print_topics(-1, topic_word_count)
 
+embedding_dim = 50
+
 while datasets_helper.next_dataset():
+    topic_names= ['world school people politics','sport victory match competition','business stock money price', 'software computers science engineering']
     results_saver.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
     gensim_text_generator = GensimTextGenerator(datasets_helper.get_train_file_path(),preprocess=preprocess)
     gensim_text_generator.init_dictionary()
-    lda = LdaModel(corpus=gensim_text_generator.get_corpus(), id2word=gensim_text_generator.get_dictionary(), num_topics=datasets_helper.get_num_of_topics(),passes=50,iterations=25)
-    print(extract_important_words(get_topics(lda,datasets_helper.get_num_of_topics()),False))
-"""validation_count = 500#datasets_helper.get_num_of_train_texts() // 10
+    lda = LdaModel(corpus=gensim_text_generator.get_corpus(), id2word=gensim_text_generator.get_dictionary(), num_topics=datasets_helper.get_num_of_topics(),num_terms=num_of_words,passes=20,iterations=20)
+    topic_words = extract_important_words(get_topics(lda,10),False)
+    print(topic_words)
+    validation_count = 500#datasets_helper.get_num_of_train_texts() // 10
     tokenizer = Tokenizer(num_words=num_of_words,
                          filters='#$%&()*+-<=>@[\\]^_`{|}~\t\n',
                          lower=False, split=' ')
@@ -74,18 +83,41 @@ while datasets_helper.next_dataset():
     model = Sequential()
     enhanced_num_of_topics = int(np.ceil(datasets_helper.get_num_of_topics())*2.5) #-datasets_helper.get_num_of_topics()/2))
     model.add(Embedding(num_of_words, embedding_dim))
-
+    #model.add(Flatten())
+    model.layers[0].set_weights([get_embedding_matrix(num_of_words, embedding_dim, tokenizer.word_index)])
+    model.layers[0].trainable = False
     results_saver.add_log("Compiling model")
 
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
     plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
     results_saver.add_log("Done. Now lets get training.")
+    datasets_helper.reset_file_stream()
+    texts = tokenizer.texts_to_sequences(datasets_helper.get_texts_as_list())
+    texts = pad_sequences(texts,max_len)
     batch_size = 128
+    a = np.reshape(model.predict(texts[0]),-1)
+    topic_embeddings =[]
+    guessed_topic_embeddings = []
+    for value in topic_words.values():
+        text = pad_sequences(tokenizer.texts_to_sequences(value), max_len)
+        guessed_topic_embeddings.append(np.reshape(model.predict(text),-1))
+
+    for value in topic_names:
+        text = pad_sequences(tokenizer.texts_to_sequences(value), max_len)
+        topic_embeddings.append(np.reshape(model.predict(text),-1))
+
+    for t_e in topic_embeddings:
+        distances = []
+        for g_t_e in guessed_topic_embeddings:
+            distances.append(spatial.distance.cosine(t_e, g_t_e))
+        print(distances.index(min(distances)))
+    print(print(topic_words))
+    #print(a)
     #callbacks = [keras.callbacks.TensorBoard(log_dir=datasets_helper.get_tensor_board_path())]
-    history = model.fit_generator( generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len), epochs=10, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),max_len,start_point=datasets_helper.get_num_of_train_texts()-validation_count))
+    #history = model.fit_generator( generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len), epochs=10, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),max_len,start_point=datasets_helper.get_num_of_train_texts()-validation_count))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
-    result = model.evaluate_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len))# model.evaluate(test_sequences,test_labels)
-    print(result)
+    #result = model.evaluate_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len))# model.evaluate(test_sequences,test_labels)
+    """print(result)
     result.append(datasets_helper.get_dataset_name())
     #model.summary(print_fn=result.append)
     results.append(result)
@@ -114,7 +146,7 @@ while datasets_helper.next_dataset():
     plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"acc"))
     plt.clf()
 
-    results_saver.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()))
+    results_saver.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()))"""
 
     results_saver.write_2D_list("results",results)
-results_saver.end_logging()"""
+results_saver.end_logging()

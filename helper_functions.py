@@ -22,7 +22,7 @@ dataset_folder = base_path + "\\datasets\\"
 
 train_file_name = "new-train"
 test_file_name = "new-test"
-skippable_datasets = [1,2,3,4,5,6,7,8]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,5,6,7,8]#[1,4,5,6,7]#[1,4,5]#
+skippable_datasets = [0,1,4,5,6,7,8]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,5,6,7,8]#[1,4,5,6,7]#[1,4,5]#
 
 
 def preprocess_sentence(sentence):
@@ -65,6 +65,9 @@ class Dataset_Helper():
         self.change_dataset(self.dataset_position)
         return True
 
+    def get_texts_as_list(self, csv_file_stream=None):
+        return list(self.text_generator(csv_file_stream))
+
     def reset_dataset_counter(self):
         self.dataset_position = -1
 
@@ -101,8 +104,17 @@ class Dataset_Helper():
         os.makedirs(os.path.dirname(path), exist_ok=True)
         return path
 
-    def text_generator(self):
-        for text in self.csv_train_file_stream:
+    def reset_file_stream(self):
+        if self.csv_train_file_stream is not None:
+            self.csv_train_file_stream.seek(0)
+
+    def open_file_stream(self, path):
+        return open(path, encoding="utf-8", errors="ignore")
+
+    def text_generator(self, csv_file_stream = None):
+        if csv_file_stream is None:
+            csv_file_stream = self.csv_train_file_stream
+        for text in csv_file_stream:
             if text == "":
                 break
             s = text.split(";")

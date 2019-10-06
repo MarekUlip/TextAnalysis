@@ -47,4 +47,4 @@ class Training_Text_Generator_RNN(Sequence):
         labels = to_categorical(articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
         features = self.tokenizer.texts_to_matrix(articles[:,1],mode="binary") #vectorize_sequences(self.tokenizer.texts_to_sequences(articles[:,1]),self.num_of_words).astype(np.uint8)
         articles = None
-        return np.reshape(features,(features.shape[0], 1, features.shape[1])), labels
+        return np.reshape(features,(features.shape[0], 1, features.shape[1])), labels#(1,features.shape[1],1)),labels

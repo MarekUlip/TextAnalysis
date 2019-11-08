@@ -22,7 +22,7 @@ dataset_folder = base_path + "\\datasets\\"
 
 train_file_name = "new-train"
 test_file_name = "new-test"
-skippable_datasets = [0,1,4,5,6,7,8]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,5,6,7,8]#[1,4,5,6,7]#[1,4,5]#
+skippable_datasets = [0,1,3,4,5,6,7,8]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,5,6,7,8]#[1,4,5,6,7]#[1,4,5]#
 
 
 def preprocess_sentence(sentence):

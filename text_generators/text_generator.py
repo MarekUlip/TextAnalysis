@@ -1,5 +1,4 @@
-from keras.preprocessing.text import Tokenizer
-from keras.utils import Sequence
+from aliaser import Sequence, Tokenizer
 import numpy as np
 import csv
 from itertools import islice

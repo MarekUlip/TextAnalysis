@@ -1,5 +1,4 @@
-from keras.models import Sequential
-from keras.layers import Dense, GRU
+from aliaser import Sequential, GRU, Dense
 from text_generators.training_text_generator import TrainingTextGenerator
 from models.Model import Model
 

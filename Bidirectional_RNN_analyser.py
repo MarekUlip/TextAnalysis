@@ -1,25 +1,17 @@
-import keras
-import tensorflow as tf
-import numpy as np
 import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.preprocessing.text import Tokenizer
-from keras.layers import Dense, Bidirectional, LSTM
-from keras.optimizers import RMSprop
-from keras.utils.np_utils import to_categorical
 from training_text_generator_RNN import Training_Text_Generator_RNN
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 import os
 import sys
-from keras.utils import plot_model
+from  aliaser import *
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
+"""config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
 sess = tf.Session(config=config)
-keras.backend.set_session(sess)
+keras.backend.set_session(sess)"""
 
 datasets_helper = Dataset_Helper(preprocess=True)
 results_saver = LogWriter(log_file_desc="Bidirectional-no-relu")
@@ -52,8 +44,7 @@ while datasets_helper.next_dataset():
     plot_model(model, results_saver.get_plot_path("", "model-graph"), show_shapes=True)
     results_saver.add_log("Done. Now lets get training.")
     batch_size = 128
-    callbacks = [keras.callbacks.TensorBoard(log_dir=datasets_helper.get_tensor_board_path())]
-    history = model.fit_generator(callbacks=callbacks,generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()), epochs=5, validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
+    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()), epochs=5, validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
     result = model.evaluate_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()))# model.evaluate(test_sequences,test_labels)
     print(result)

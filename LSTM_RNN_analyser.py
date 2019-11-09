@@ -1,25 +1,14 @@
-import keras
-import tensorflow as tf
-import numpy as np
+from aliaser import *
 import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.preprocessing.text import Tokenizer
-from keras.layers import Dense, SimpleRNN, LSTM, RepeatVector
-from keras.optimizers import RMSprop
-from keras.utils.np_utils import to_categorical
 from training_text_generator_RNN import Training_Text_Generator_RNN
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
-from keras.utils import plot_model
 import os
 import sys
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
-sess = tf.Session(config=config)
-keras.backend.set_session(sess)
 
 datasets_helper = Dataset_Helper(False)
 results_saver = LogWriter(log_file_desc="LSTM-128neurons-base-tokenizer-no-prep-shuffled")

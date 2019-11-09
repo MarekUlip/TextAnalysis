@@ -1,7 +1,4 @@
-from keras.datasets import imdb
-from keras import preprocessing
-from keras.models import Sequential
-from keras.layers import Flatten, Dense, Embedding
+from aliaser import *
 import numpy as np
 max_features = 10000
 maxlen = 20
@@ -10,13 +7,14 @@ np_load_old = np.load
 
 # modify the default parameters of np.load
 np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
+imdb = keras.datasets.imdb
 (x_train, y_train), (x_test, y_test) = imdb.load_data(
 num_words=max_features)
 
 
 
-x_train = preprocessing.sequence.pad_sequences(x_train, maxlen=maxlen)
-x_test = preprocessing.sequence.pad_sequences(x_test, maxlen=maxlen)
+x_train = pad_sequences(x_train, maxlen=maxlen)
+x_test = pad_sequences(x_test, maxlen=maxlen)
 
 np.load = np_load_old
 

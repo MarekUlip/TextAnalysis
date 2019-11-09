@@ -28,7 +28,7 @@ skippable_datasets = [0,1,3,4,5,6,7,8]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,5,
 def preprocess_sentence(sentence):
     sentence = " ".join(word for word in sentence.split() if word not in stp_wrds)
     sentence = preprocessing.strip_short(sentence, 3)
-    #sentence = preprocessing.stem_text(sentence)
+    sentence = preprocessing.stem_text(sentence)
     return sentence
 
 class Dataset_Helper():

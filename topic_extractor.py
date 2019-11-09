@@ -1,17 +1,9 @@
-import keras
-import tensorflow as tf
+from aliaser import *
 import numpy as np
 import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.preprocessing.text import Tokenizer
-from keras.layers import Dense, Bidirectional, LSTM, Embedding, Flatten
-from keras.optimizers import RMSprop
-from keras.utils.np_utils import to_categorical
-from keras.preprocessing.sequence import pad_sequences
 
 from embedding_loader import get_embedding_matrix
 from training_text_generator_RNN_embedding import Training_Text_Generator_RNN_Embedding
-from keras.utils import plot_model
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 import os

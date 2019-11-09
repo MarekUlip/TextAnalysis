@@ -1,6 +1,5 @@
-from keras.utils.np_utils import to_categorical
+from aliaser import to_categorical, Tokenizer
 import numpy as np
-from keras.preprocessing.text import Tokenizer
 from text_generators.text_generator import TextGenerator
 
 class TrainingTextGeneratorRNN(TextGenerator):

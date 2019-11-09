@@ -1,5 +1,4 @@
-from keras.utils import Sequence
-from keras.utils.np_utils import to_categorical
+from aliaser import Sequence
 import csv
 import numpy as np
 from itertools import islice

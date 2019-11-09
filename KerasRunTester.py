@@ -1,12 +1,7 @@
-import keras
 import tensorflow as tf
-from keras.datasets import reuters
 import numpy as np
 import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.optimizers import RMSprop
-from keras.utils.np_utils import to_categorical
+from aliaser import *
 
 def vectorize_sequences(sequences, dimension=10000):
     results = np.zeros((len(sequences),dimension))
@@ -15,16 +10,11 @@ def vectorize_sequences(sequences, dimension=10000):
     return results
 
 
-
-config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
-sess = tf.Session(config=config)
-keras.backend.set_session(sess)
-
 np_load_old = np.load
 
 # modify the default parameters of np.load
 np.load = lambda *a,**k: np_load_old(*a, allow_pickle=True, **k)
-
+reuters = tf.keras.datasets.reuters
 (train_data, train_labels), (test_data, test_labels) = reuters.load_data(num_words=10000)
 
 np.load = np_load_old

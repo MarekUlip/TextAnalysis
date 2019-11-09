@@ -1,9 +1,6 @@
-from keras.utils import Sequence
-from keras.utils.np_utils import to_categorical
 import csv
 import numpy as np
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
+from aliaser import *
 from itertools import islice
 from helper_functions import preprocess_sentence
 

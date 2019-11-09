@@ -1,7 +1,5 @@
-from keras.utils.np_utils import to_categorical
+from aliaser import to_categorical, Tokenizer, pad_sequences
 import numpy as np
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
 from text_generators.text_generator import TextGenerator
 
 

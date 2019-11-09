@@ -1,24 +1,15 @@
-import keras
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from keras.models import Sequential
-from keras.preprocessing.text import Tokenizer
-from keras.layers import Dense, Bidirectional, LSTM, Embedding
-from keras.optimizers import RMSprop
-from keras.utils.np_utils import to_categorical
 from training_text_generator_RNN_embedding import Training_Text_Generator_RNN_Embedding
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 import os
 import sys
+from aliaser import *
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
-
-config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
-sess = tf.Session(config=config)
-keras.backend.set_session(sess)
 
 datasets_helper = Dataset_Helper()
 results_saver = LogWriter(log_file_desc="Bidirectional-recurrent-dropout-Embed-preprocessing")

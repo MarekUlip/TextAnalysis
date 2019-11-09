@@ -1,16 +1,7 @@
 import numpy as np
 import os
-
-#os.environ['KERAS_BACKEND'] = 'tensorflow'
-import keras
+from aliaser import *
 import sys
-import tensorflow as tf
-from keras.preprocessing.text import Tokenizer
-from keras.preprocessing.sequence import pad_sequences
-from keras.utils.np_utils import to_categorical
-from keras.layers import Dense, Input, Flatten
-from keras.layers import Conv1D, MaxPooling1D, Embedding, Concatenate# merge#, Merge, Dropout
-from keras.models import Model
 
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
@@ -18,10 +9,6 @@ from training_text_generator_RNN_embedding import Training_Text_Generator_RNN_Em
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
-
-config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
-sess = tf.Session(config=config)
-keras.backend.set_session(sess)
 
 MAX_SEQUENCE_LENGTH = 1000
 MAX_NB_WORDS = 10000
@@ -222,7 +209,7 @@ for fsz in filter_sizes:
 
     convs.append(l_pool)
 
-l_merge = Concatenate(axis=1)(convs)
+l_merge = keras.layers.Concatenate(axis=1)(convs)
 
 l_cov1 = Conv1D(128, 5, activation='relu')(l_merge)
 

@@ -1,21 +1,15 @@
-import keras
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from keras.preprocessing.text import Tokenizer
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 from models.Dense import DenseModel
 import os
 import sys
-from keras.utils import plot_model
 import time
+from aliaser import plot_model,Tokenizer
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
-
-config = tf.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
-sess = tf.Session(config=config)
-keras.backend.set_session(sess)
 
 datasets_helper = Dataset_Helper(preprocess=True)
 num_of_words = 10000

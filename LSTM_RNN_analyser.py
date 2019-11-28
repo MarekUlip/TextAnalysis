@@ -5,12 +5,13 @@ from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 import os
 import sys
+import tensorflow as tf
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 
-datasets_helper = Dataset_Helper(False)
+datasets_helper = Dataset_Helper(True)
 results_saver = LogWriter(log_file_desc="LSTM-128neurons-base-tokenizer-no-prep-shuffled")
 results = []
 num_of_words = 10000
@@ -27,10 +28,10 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Done. Building model now.")
 
     model = Sequential()
-    enhanced_num_of_topics = 128#int(np.ceil(datasets_helper.get_num_of_topics()*2))#-datasets_helper.get_num_of_topics()/2))
-    model.add(LSTM(enhanced_num_of_topics,input_shape=(1,num_of_words),activation='relu'))
-    model.add(RepeatVector(3))
-    model.add(LSTM(enhanced_num_of_topics,activation='relu'))
+    enhanced_num_of_topics = 256#int(np.ceil(datasets_helper.get_num_of_topics()*2))#-datasets_helper.get_num_of_topics()/2))
+    model.add(LSTM(enhanced_num_of_topics,input_shape=(1,num_of_words), return_sequences=True))
+    #model.add(RepeatVector(3))
+    model.add(LSTM(enhanced_num_of_topics))
     #model.add(Dense(enhanced_num_of_topics, activation='relu', input_shape=(num_of_words,)))
     #model.add(Dense(enhanced_num_of_topics, activation='relu'))
     model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
@@ -39,7 +40,7 @@ while datasets_helper.next_dataset():
     plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
     results_saver.add_log("Done. Now lets get training.")
     batch_size = 128
-    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()), epochs=15, validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
+    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()), epochs=5, validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
     result = model.evaluate_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()))# model.evaluate(test_sequences,test_labels)
     print(result)
@@ -59,7 +60,7 @@ while datasets_helper.next_dataset():
     plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"loss"))
 
 
-    plt.clf()
+    """plt.clf()
     acc = history.history['acc']
     val_acc = history.history['val_acc']
     plt.plot(epochs, acc, 'bo', label='Training acc')
@@ -69,7 +70,7 @@ while datasets_helper.next_dataset():
     plt.ylabel('Loss')
     plt.legend()
     plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"acc"))
-    plt.clf()
+    plt.clf()"""
 
     results_saver.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()))
 

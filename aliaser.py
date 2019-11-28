@@ -8,7 +8,7 @@ keras = tf.keras
 #layers aliases
 Dense = tf.keras.layers.Dense
 Bidirectional = tf.keras.layers.Bidirectional
-LSTM = tf.keras.layers.Embedding
+LSTM = tf.keras.layers.LSTM
 Flatten = tf.keras.layers.Flatten
 Input = tf.keras.layers.Input
 Conv1D = tf.keras.layers.Conv1D

@@ -23,7 +23,7 @@ dataset_folder = base_path + "\\datasets\\"
 train_file_name = "new-train"
 test_file_name = "new-test"
 skippable_datasets = [0,1,3,4,5,6,7,8]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,5,6,7,8]#[1,4,5,6,7]#[1,4,5]#
-
+wanted_datasets = [3,8]
 
 def preprocess_sentence(sentence):
     sentence = " ".join(word for word in sentence.split() if word not in stp_wrds)
@@ -39,6 +39,7 @@ class Dataset_Helper():
         self.current_dataset = None
         self.csv_train_file_stream = None
         self.preprocess = preprocess
+        self.wanted_datasets = range(len(self.dataset_info)) #:list of dataset indexes to be analysed. Defaultly all indexes from file info.csv will be analysed
 
     def load_dataset_info(self):
         with open(dataset_folder+"info.csv",encoding="utf-8", errors="ignore") as settings_file:
@@ -53,12 +54,21 @@ class Dataset_Helper():
             self.csv_train_file_stream = None
         self.csv_train_file_stream = open(self.get_train_file_path(), encoding="utf-8", errors="ignore")
 
+    def set_wanted_datasets(self, wanted_datasets):
+        self.wanted_datasets = wanted_datasets
+
+    def skip_selected_datasets(self, selected_datasets):
+        """
+        Skips provided datasets so they are not analysed.
+        :param selected_datasets: indexes of datasets starting from 0 that should be ignored
+        """
+        self.wanted_datasets = [index for index in self.wanted_datasets if index not in selected_datasets]
     def next_dataset(self):
         self.dataset_position += 1
-        while self.dataset_position in skippable_datasets:
+        while self.dataset_position not in self.wanted_datasets:
             self.dataset_position += 1
-        if self.dataset_position >= len(self.dataset_info):
-            return False
+            if self.dataset_position >= len(self.dataset_info):
+                return False
         if self.csv_train_file_stream is not None:
             self.csv_train_file_stream.close()
             self.csv_train_file_stream = None

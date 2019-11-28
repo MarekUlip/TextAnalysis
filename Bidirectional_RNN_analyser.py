@@ -30,10 +30,10 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Done. Building model now.")
 
     model = Sequential()
-    enhanced_num_of_topics = 128#int(np.ceil(datasets_helper.get_num_of_topics()*4)) #-datasets_helper.get_num_of_topics()/2))
-    model.add(Bidirectional(LSTM(enhanced_num_of_topics, return_sequences=True, activation='relu'),input_shape=(1,num_of_words)))
+    enhanced_num_of_topics = 256#int(np.ceil(datasets_helper.get_num_of_topics()*4)) #-datasets_helper.get_num_of_topics()/2))
+    model.add(Bidirectional(LSTM(enhanced_num_of_topics, return_sequences=True),input_shape=(1,num_of_words)))
     #model.add(Bidirectional(LSTM(enhanced_num_of_topics,  return_sequences=True)))
-    model.add(Bidirectional(LSTM(enhanced_num_of_topics,activation='relu')))
+    model.add(Bidirectional(LSTM(enhanced_num_of_topics)))
     #model.add(Bidirectional(LSTM(enhanced_num_of_topics, activation='relu')))#,dropout=0.1,recurrent_dropout=0.5,input_shape=(num_of_words,),return_sequences=True))
     #model.add(LSTM(40,activation='relu'))
     #model.add(Dense(enhanced_num_of_topics, activation='relu', input_shape=(num_of_words,)))
@@ -65,7 +65,7 @@ while datasets_helper.next_dataset():
 
 
     plt.clf()
-    acc = history.history['acc']
+    """acc = history.history['acc']
     val_acc = history.history['val_acc']
     plt.plot(epochs, acc, 'bo', label='Training acc')
     plt.plot(epochs, val_acc, 'b', label='Validation acc')
@@ -74,7 +74,7 @@ while datasets_helper.next_dataset():
     plt.ylabel('Loss')
     plt.legend()
     plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"acc"))
-    plt.clf()
+    plt.clf()"""
 
     results_saver.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()))
 

@@ -1,3 +1,6 @@
+#from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 from gensim import corpora
@@ -5,6 +8,7 @@ import matplotlib.pyplot as plt
 from aliaser import *
 import os
 import sys
+import numpy as np
 
 
 
@@ -45,10 +49,14 @@ autoencoder = Model(input_row,output_row)
 #autoencoder.compile(optimizer='adadelta', loss='mse', metrics=['accuracy'])
 autoencoder.compile(optimizer='adam', loss='mse',metrics=['accuracy'])#optimizer='adadelta', loss='mse', metrics=['accuracy'])
 #autoencoder.compile(optimizer='adadelta', loss='categorical_crossentropy', metrics=['accuracy'])
-history = autoencoder.fit(matrix,matrix,batch_size=64,epochs=20,validation_split=0.1)
-
+history = autoencoder.fit(matrix,matrix,batch_size=64,epochs=30,validation_split=0.1, metrics=['accuracy'])
+print(history)
 #topic_matrix = model.layers[0].weights
 documents = dataset_helper.get_texts_as_list(dataset_helper.open_file_stream(dataset_helper.get_test_file_path()))
+
+encoder = Model(input_row,encoder)
+encoded_input = Input(shape=(int(num_of_words/num_of_topics),))
+decoder = Model(encoded_input,autoencoder.layers[-1](encoded_input))
 
 matrix = tokenizer.texts_to_matrix(documents)#vectorizer.transform(documents).todense()/num_of_words
 result = autoencoder.evaluate(matrix,matrix)
@@ -62,8 +70,28 @@ plt.title('Training and validation loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.legend()
-plt.show()
+#plt.show()
 
+#matrix = matrix.reshape((matrix.shape[1],matrix.shape[0]))
+#for i in range(matrix.shape[0]):
+#    print((autoencoder.predict(matrix[:,i])))
+#encoder.compile()
+encoded = encoder.predict(matrix)
+#decoder.compile(optimizer='adam', loss='mse')
+decoded = decoder.predict(encoded)
+hits = 0
+for index, row in enumerate(decoded):
+    result = np.subtract(np.around(row),matrix[index])
+    if np.abs(np.sum(result)) < 100:
+        print(np.sum(np.abs(result)))
+        hits+=1
+    """#print(np.sum(matrix[index]))
+    if np.sum(result) <= np.sum(matrix[index]) + 0.001 and np.sum(result) >= np.sum(matrix[index]) - 0.001:
+        hits+=1"""
+print(hits)
+
+
+#print(autoencoder.predict(matrix))
 
 """plt.clf()
 acc = history.history['acc']

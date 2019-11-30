@@ -6,6 +6,7 @@ from models.Dense import DenseModel
 import os
 import sys
 import time
+from sklearn.metrics import confusion_matrix
 from aliaser import plot_model,Tokenizer
 
 file_dir = os.path.dirname(__file__)
@@ -41,7 +42,6 @@ for model in models:
         result.append(datasets_helper.get_dataset_name())
         results.append(result)
         results_saver.add_log("Done. Finishing this dataset.")
-
         loss = history.history['loss']
         val_loss = history.history['val_loss']
         epochs = range(1, len(loss) + 1)
@@ -52,7 +52,6 @@ for model in models:
         plt.ylabel('Loss')
         plt.legend()
         plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"loss"))
-
         plt.clf()
         acc = history.history['acc']
         val_acc = history.history['val_acc']

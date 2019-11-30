@@ -121,7 +121,27 @@ class Dataset_Helper():
     def open_file_stream(self, path):
         return open(path, encoding="utf-8", errors="ignore")
 
-    def text_generator(self, csv_file_stream = None):
+    def get_labels(self, path):
+        with self.open_file_stream(path) as csv_file_stream:
+            labels = []
+            for s in csv.reader(csv_file_stream, delimiter=';'):
+                # print("getting item based on {}".format(item))
+                labels.append(int(s[0]))
+        return labels
+
+
+
+    def text_generator(self, csv_file_stream=None):
+        if csv_file_stream is None:
+            csv_file_stream = self.csv_train_file_stream
+        for s in csv.reader(csv_file_stream, delimiter=';'):
+            # print("getting item based on {}".format(item))
+            if self.preprocess:
+                yield preprocess_sentence(s[1])
+            else:
+                yield s[1]
+
+    def text_generator_b(self, csv_file_stream = None):
         if csv_file_stream is None:
             csv_file_stream = self.csv_train_file_stream
         for text in csv_file_stream:
@@ -129,7 +149,8 @@ class Dataset_Helper():
                 break
             s = text.split(";")
             if len(s) <= 1:
-                break
+                print('uups')
+                continue
             if self.preprocess:
                 yield preprocess_sentence(s[1])
             else:

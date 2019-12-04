@@ -53,7 +53,7 @@ for embedding_dim in [200]:
         model.layers[0].set_weights([get_embedding_matrix(num_of_words,embedding_dim,tokenizer.word_index)])
         model.layers[0].trainable = False
 
-        model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+        model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
         results_saver.add_log("Done. Now lets get training.")
         batch_size = 256

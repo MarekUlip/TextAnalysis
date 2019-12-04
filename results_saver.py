@@ -42,7 +42,7 @@ class LogWriter:
         """
         self.append_to_logfile()
 
-    def write_2D_list(self, list_name, statistics):
+    def write_2D_list(self, list_name, statistics,write_mode='w+'):
         """
         Writes provided 2D list into csv file
         :param list_name: List name used in file creation
@@ -51,7 +51,7 @@ class LogWriter:
         filename = self.path + list_name + ".csv"
         print(filename)
         os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, mode='w+', newline='') as list_file:
+        with open(filename, mode=write_mode, newline='') as list_file:
             list_writer = csv.writer(list_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             for item in statistics:
                 list_writer.writerow(item)
@@ -98,6 +98,13 @@ class LogWriter:
         with open(filename, mode='w+', newline='') as params_file:
             #params_writer = csv.writer(params_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             params_file.write(json.dumps(params_to_save))
+
+    def write_any(self,file_name,to_safe,write_mode):
+        filename = os.getcwd() + file_name + ".txt"
+        print(filename)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        with open(filename, mode=write_mode, newline='') as params_file:
+            params_file.write(json.dumps(to_safe))
 
     def get_plot_path(self, dataset_name,plot_name):
         path = self.path + dataset_name+"\\"+ plot_name + ".png"

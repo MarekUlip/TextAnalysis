@@ -86,17 +86,17 @@ def create_base_params(network_type,dataset_helper:Dataset_Helper):
         'topic_nums': hp.choice('topic_nums',[dataset_helper.get_num_of_topics()]),
         #'tokenizer': tokenizer,
         'dataset_helper': hp.choice('dataset_helper', [dataset_helper]),
-        'num_of_words': hp.choice('num_of_words',[5000,10000,12500]),
+        'num_of_words': hp.choice('num_of_words',[10000,12500]),
         #'preprocess': False,
         'max_len': hp.choice('max_len',[100,200,300]),
-        'num_of_layers': num_of_layers,#TODO check how much it can handle
-        'num_of_neurons': hp.choice('num_of_neurons',[32,64,128,256]),
+        'num_of_layers': num_of_layers,
+        'num_of_neurons': hp.choice('num_of_neurons',[64,128,256]),
         'activation_function': hp.choice('activation_function',['relu','tanh']),
         'dropouts': hp.randint('dropouts',3),
         'dropout_values': hp.uniform('dropout_values',0.01,0.5),
         'epochs': hp.choice('epochs',[20]),#hp.randint('epochs',20),
         'batch_size': batch_size,
-        'learning_rate': hp.choice('learning_rate',[0.001,0.0001,0.01,0.0005]),
+        'learning_rate': hp.choice('learning_rate',[0.001,0.01,0.0005]),
         'optimizer': hp.choice('optimizer',['adam', 'rmsprop'])
     }
     return space
@@ -109,7 +109,7 @@ datasets_helper = Dataset_Helper(False)
 results_saver = LogWriter(log_file_desc="hyperopt-best-param-search")
 results = []
 datasets_helper.set_wanted_datasets([3])
-models_to_test = ['lstm','dense','embedding','bidi','gru']
+models_to_test = ['lstm','dense','embedding','bidi']
 """datasets_helper.next_dataset()
 space = create_base_params('lstm',datasets_helper)
 smpl = sample(space)

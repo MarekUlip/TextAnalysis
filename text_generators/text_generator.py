@@ -21,7 +21,7 @@ class TextGenerator(Sequence):
         self.is_predicting = is_predicting
         self.labels = None
         self.tmp_articles = None
-        self.articles = None
+        self.articles = []
         if preload_dataset:
             self.load_dataset()
 

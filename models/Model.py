@@ -1,15 +1,15 @@
 import numpy as np
-
+from aliaser import EarlyStopping
 
 class Model:
     def __init__(self):
-        self._model = None
+        self.model = None
         self.model_name = None
-        self._train_text_generator = None
+        self.train_text_generator = None
         self.topic_nums = None
         self.enhanced_num_of_topics = None
         self.num_of_words = None
-        self.preprocess = None
+        self.preprocess = False
         self.max_len = None
         self.num_of_layers = None
         self.num_of_neurons:list = None
@@ -65,7 +65,7 @@ class Model:
         if params.get('optimizer',None) is not None:
             self.optimizer = params['optimizer']
         if params.get('dropouts',None) is not None:
-            self.dropouts = params['optimizer']
+            self.dropouts = params['dropouts']
         if params.get('dropout_values',None) is not None:
             self.dropout_values = params['dropout_values']
         if params.get('epochs', None) is not None:
@@ -79,7 +79,7 @@ class Model:
         else:
             self.num_of_layers = len(self.num_of_neurons)
         if type(self.activation_functions) is not list:
-            self.activation_functions = self.create_list_from_value(self.activation_functions,self.num_of_neurons)
+            self.activation_functions = self.create_list_from_value(self.activation_functions,self.num_of_layers)
         if type(self.dropouts) is not list:
             self.dropouts = [True if i <= self.dropouts else False for i in range(self.num_of_layers)]
         if type(self.dropout_values) is not list:
@@ -100,25 +100,31 @@ class Model:
     def get_uncompiled_static_model(self):
         pass
 
+    def compile_model(self):
+        self.model = self.get_compiled_model()
+
     def get_current_model(self):
-        return self._model
+        return self.model
 
     def fit_generator(self, datasets_helper, tokenizer, validation_count):
-        return self._model.fit_generator(
-            generator=self._train_text_generator(datasets_helper.get_train_file_path(), self.batch_size,
-                                                 datasets_helper.get_num_of_train_texts(),
-                                                 self.num_of_words, tokenizer, ";",
-                                                 datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False), epochs=self.epochs,
-            validation_data=self._train_text_generator(datasets_helper.get_train_file_path(),
-                                                       self.batch_size, validation_count, self.num_of_words,
-                                                       tokenizer, ";",
-                                                       datasets_helper.get_num_of_topics(),
-                                                       start_point=datasets_helper.get_num_of_train_texts() - validation_count, max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
+        early_stop = EarlyStopping(monitor='val_accuracy', patience=3)
+        return self.model.fit_generator(
+            generator=self.train_text_generator(datasets_helper.get_train_file_path(), self.batch_size,
+                                                datasets_helper.get_num_of_train_texts(),
+                                                self.num_of_words, tokenizer, ";",
+                                                datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False),
+                epochs=self.epochs,
+            callbacks=[early_stop],
+            validation_data=self.train_text_generator(datasets_helper.get_train_file_path(),
+                                                      self.batch_size, validation_count, self.num_of_words,
+                                                      tokenizer, ";",
+                                                      datasets_helper.get_num_of_topics(),
+                                                      start_point=datasets_helper.get_num_of_train_texts() - validation_count, max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
 
     def evaluate_generator(self, datasets_helper, tokenizer):
-        return self._model.evaluate_generator(
-            generator=self._train_text_generator(datasets_helper.get_test_file_path(), self.batch_size,
-                                                 datasets_helper.get_num_of_test_texts(),
-                                                 self.num_of_words, tokenizer, ";",
-                                                 datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
+        return self.model.evaluate_generator(
+            generator=self.train_text_generator(datasets_helper.get_test_file_path(), self.batch_size,
+                                                datasets_helper.get_num_of_test_texts(),
+                                                self.num_of_words, tokenizer, ";",
+                                                datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
 

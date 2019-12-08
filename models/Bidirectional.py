@@ -26,7 +26,7 @@ class BidirectionalModel(Model):
         self.get_uncompiled_static_model().compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
         return self.model
 
-    def get_compiled_model(self):
+    def get_uncompiled_model(self):
         self.correct_params()
         last_lay_num = self.num_of_layers-1
         self.model = Sequential()
@@ -50,7 +50,7 @@ class BidirectionalModel(Model):
         self.model.add(Dense(self.topic_nums,activation='softmax'))
         return self.model
 
-    def get_uncompiled_model(self):
+    def get_compiled_model(self):
         self.get_uncompiled_model().compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
         return self.model
 

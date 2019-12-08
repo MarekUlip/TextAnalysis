@@ -15,5 +15,7 @@ conda install -c anaconda gensim <br/>
 conda install -c conda-forge matplotlib <br/>
 conda install -c anaconda scikit-learn <br/>
 conda install -c anaconda pydot <br/>
-conda install -c anaconda graphviz (May not be needed as pydot should be installed with it)
+conda install -c anaconda graphviz (May not be needed as pydot should be installed with it)<br/>
+conda install pip <br/>
+pip install hyperas <br/>
 

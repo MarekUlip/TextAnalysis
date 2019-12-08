@@ -4,6 +4,7 @@ import os
 import matplotlib.pyplot as plt
 import json
 import time
+import pandas as pd
 
 class LogWriter:
     def __init__(self, log_file_path=None,log_file_desc="",base_time =str(int(round(time.time()) * 1000))):
@@ -78,7 +79,7 @@ class LogWriter:
         plt.xlabel("Číslo testu")
         plt.ylabel("Přesnost (%)")
         plt.legend()
-        path = os.getcwd()+file_name+".png"
+        path = self.path+file_name+".png"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         plt.savefig(path)
         plt.clf()
@@ -92,7 +93,7 @@ class LogWriter:
         params_to_save = {}
         for key, value in params.items():
             params_to_save[key.name] = value
-        filename = os.getcwd() + file_name + ".txt"
+        filename = self.path + file_name + ".txt"
         print(filename)
         os.makedirs(os.path.dirname(filename), exist_ok=True)
         with open(filename, mode='w+', newline='') as params_file:
@@ -100,11 +101,12 @@ class LogWriter:
             params_file.write(json.dumps(params_to_save))
 
     def write_any(self,file_name,to_safe,write_mode):
-        filename = os.getcwd() + file_name + ".txt"
+        filename = self.path + file_name + ".txt"
         print(filename)
         os.makedirs(os.path.dirname(filename), exist_ok=True)
+        to_safe = pd.DataFrame(to_safe)
         with open(filename, mode=write_mode, newline='') as params_file:
-            params_file.write(json.dumps(to_safe))
+            params_file.write(to_safe.to_json()+'\n')
 
     def get_plot_path(self, dataset_name,plot_name):
         path = self.path + dataset_name+"\\"+ plot_name + ".png"

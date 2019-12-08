@@ -4,7 +4,6 @@ import tensorflow as tf
 
 #Keras itself
 keras = tf.keras
-
 #layers aliases
 Dense = tf.keras.layers.Dense
 Bidirectional = tf.keras.layers.Bidirectional
@@ -31,3 +30,7 @@ Sequential = tf.keras.models.Sequential
 #preprocesing aliases
 Tokenizer = tf.keras.preprocessing.text.Tokenizer
 pad_sequences = tf.keras.preprocessing.sequence.pad_sequences
+
+
+#callbacks aliases
+EarlyStopping = keras.callbacks.EarlyStopping

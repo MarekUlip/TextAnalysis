@@ -24,14 +24,14 @@ class DenseModel(Model):
         self.get_uncompiled_model().compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
         return self.model
 
-    def get_compiled_model(self):
+    def get_uncompiled_model(self):
         self.correct_params()
         last_lay_num = self.num_of_layers-1
         self.model = Sequential()
         if self.num_of_layers == 1:
-            self.model.add(Dense(self.num_of_neurons[0],input_shape=(1, self.num_of_words),activation=self.activation_functions[0]))
+            self.model.add(Dense(self.num_of_neurons[0],input_shape=(self.num_of_words,),activation=self.activation_functions[0]))
         else:
-            self.model.add(Dense(self.num_of_neurons[0],input_shape=(1, self.num_of_words),return_sequences=True,activation=self.activation_functions[0]))
+            self.model.add(Dense(self.num_of_neurons[0],input_shape=(self.num_of_words,),activation=self.activation_functions[0]))
         for i in range(1,last_lay_num):
             if self.dropouts[i]:
                 self.model.add(Dropout(rate=self.dropout_values[i]))
@@ -40,7 +40,7 @@ class DenseModel(Model):
         self.model.add(Dense(self.topic_nums,activation='softmax'))
         return self.model
 
-    def get_uncompiled_model(self):
+    def get_compiled_model(self):
         self.get_uncompiled_model().compile(optimizer=self.optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
         return self.model
 

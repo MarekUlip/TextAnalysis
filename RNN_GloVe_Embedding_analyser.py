@@ -14,10 +14,10 @@ sys.path.append(file_dir)
 
 datasets_helper = Dataset_Helper(preprocess=False)
 
-num_of_words = 10000
+num_of_words = 15000
 #embedding_dim = 50
-max_len = 400
-for embedding_dim in [200]:
+max_len = 300
+for embedding_dim in [100]:
     results_saver = LogWriter(log_file_desc="RNN-GloVe{}-preprocessing-more-neurons-epochs".format(embedding_dim))
     results = []
 
@@ -33,7 +33,7 @@ for embedding_dim in [200]:
         results_saver.add_log("Done. Building model now.")
 
         model = Sequential()
-        enhanced_num_of_topics = 128#int(np.ceil(datasets_helper.get_num_of_topics())*2.5) #-datasets_helper.get_num_of_topics()/2))
+        enhanced_num_of_topics = 256#int(np.ceil(datasets_helper.get_num_of_topics())*2.5) #-datasets_helper.get_num_of_topics()/2))
         model.add(Embedding(num_of_words, embedding_dim))
         model.add(LSTM(enhanced_num_of_topics, return_sequences=True))
         #model.add(LSTM(enhanced_num_of_topics, return_sequences=True))
@@ -50,13 +50,14 @@ for embedding_dim in [200]:
         model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
 
         results_saver.add_log("Compiling model")
-        model.layers[0].set_weights([get_embedding_matrix(num_of_words,embedding_dim,tokenizer.word_index)])
+        #model.layers[0].set_weights([get_embedding_matrix(num_of_words,embedding_dim,tokenizer.word_index)])
         model.layers[0].trainable = False
 
         model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
         plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
         results_saver.add_log("Done. Now lets get training.")
-        batch_size = 256
+        print(model.summary())
+        batch_size = 128
         num_of_epochs = 30
         #callbacks = [keras.callbacks.TensorBoard(log_dir=datasets_helper.get_tensor_board_path())]
         history = model.fit_generator( generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len), epochs=num_of_epochs, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),max_len,start_point=datasets_helper.get_num_of_train_texts()-validation_count))

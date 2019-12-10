@@ -46,7 +46,9 @@ class BidirectionalModel(Model):
             if self.dropouts[i]:
                 self.model.add(Dropout(rate=self.dropout_values[i]))
             self.model.add(Bidirectional(inner_network(self.num_of_neurons[i],return_sequences=True,activation=self.activation_functions[i])))
-        self.model.add(Bidirectional(inner_network(self.num_of_neurons[last_lay_num], activation=self.activation_functions[last_lay_num])))
+        if self.num_of_layers != 1:
+            self.model.add(Bidirectional(inner_network(self.num_of_neurons[last_lay_num], activation=self.activation_functions[last_lay_num])))
+        #self.model.add(Bidirectional(inner_network(self.num_of_neurons[last_lay_num], activation=self.activation_functions[last_lay_num])))
         self.model.add(Dense(self.topic_nums,activation='softmax'))
         return self.model
 

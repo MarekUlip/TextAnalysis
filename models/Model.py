@@ -115,6 +115,7 @@ class Model:
                                                 datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False),
                 epochs=self.epochs,
             callbacks=[early_stop],
+            verbose=2,
             validation_data=self.train_text_generator(datasets_helper.get_train_file_path(),
                                                       self.batch_size, validation_count, self.num_of_words,
                                                       tokenizer, ";",

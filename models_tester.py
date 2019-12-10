@@ -14,7 +14,6 @@ from models.EmbeddingLSTM import EmbeddingLSTMModel
 from results_saver import LogWriter
 import tensorflow as tf
 
-
 def resolve_network_type(network_type):
     if network_type == 'lstm':
         return LSTMModel()
@@ -29,10 +28,14 @@ def resolve_network_type(network_type):
 
 
 def optimize_model(args):
+    print(args)
+    datasets_helper = Dataset_Helper(False)
+    datasets_helper.set_wanted_datasets([args['dataset_num']])
+    datasets_helper.next_dataset()
     tokenizer = Tokenizer(num_words=args['num_of_words'])
     # filters='#$%&()*+-<=>@[\\]^_`{|}~\t\n',
     # lower=False, split=' ')
-    generator = args['dataset_helper'].text_generator()
+    generator = datasets_helper.text_generator()
     tokenizer.fit_on_texts(generator)
     args['optimizer'] = create_optimizer(args['optimizer'],args['learning_rate'])
     model = resolve_network_type(args['network_type'])
@@ -40,13 +43,14 @@ def optimize_model(args):
     if args['network_type'] == 'embedding':
         model.tokenizer = tokenizer
     model.compile_model()
-    model.fit_generator(datasets_helper=args['dataset_helper'], tokenizer=tokenizer, validation_count=500)
-    results = model.evaluate_generator(datasets_helper=args['dataset_helper'], tokenizer=tokenizer)
+    model.fit_generator(datasets_helper=datasets_helper, tokenizer=tokenizer, validation_count=500)
+    results = model.evaluate_generator(datasets_helper=datasets_helper, tokenizer=tokenizer)
     print(results)
     del model
     del tokenizer
     del generator
-    tf.compat.v1.keras.backend.clear_session()
+    del datasets_helper
+    tf.compat.v2.keras.backend.clear_session()
     return -np.amax(results[1])
 
 def optimize_lstm(args):
@@ -76,24 +80,27 @@ def find_optimal_embedding_params():
 
 def create_base_params(network_type,dataset_helper:Dataset_Helper):
     if network_type == 'embedding':
-        batch_size = hp.choice('batch_size',[128])
+        batch_size = hp.choice('batch_size',[64,128])
         num_of_layers = hp.choice('num_of_layers',[1,2])
+        num_of_neurons = hp.choice('num_of_neurons',[32,64,128])
     else:
         batch_size = hp.choice('batch_size',[64,128,256])
         num_of_layers = hp.choice('num_of_layers',[1,2,3,4])
+        num_of_neurons = hp.choice('num_of_neurons',[32,64,128,256])
     space = {
+        'dataset_num': hp.choice('dataset_num',[datasets_helper.dataset_position]),
         'network_type': hp.choice('network_type',[network_type]),
         'topic_nums': hp.choice('topic_nums',[dataset_helper.get_num_of_topics()]),
         #'tokenizer': tokenizer,
-        'dataset_helper': hp.choice('dataset_helper', [dataset_helper]),
-        'num_of_words': hp.choice('num_of_words',[10000,12500]),
+        #'dataset_helper': hp.choice('dataset_helper', [dataset_helper]),
+        'num_of_words': hp.choice('num_of_words',[10000]),
         #'preprocess': False,
         'max_len': hp.choice('max_len',[100,200,300]),
         'num_of_layers': num_of_layers,
-        'num_of_neurons': hp.choice('num_of_neurons',[64,128,256]),
+        'num_of_neurons': num_of_neurons,
         'activation_function': hp.choice('activation_function',['relu','tanh']),
         'dropouts': hp.randint('dropouts',3),
-        'dropout_values': hp.uniform('dropout_values',0.01,0.5),
+        'dropout_values': hp.uniform('dropout_values',0.01,0.2),
         'epochs': hp.choice('epochs',[20]),#hp.randint('epochs',20),
         'batch_size': batch_size,
         'learning_rate': hp.choice('learning_rate',[0.001,0.01,0.0005]),
@@ -108,7 +115,7 @@ sys.path.append(file_dir)
 datasets_helper = Dataset_Helper(False)
 results_saver = LogWriter(log_file_desc="hyperopt-best-param-search")
 results = []
-datasets_helper.set_wanted_datasets([3])
+datasets_helper.set_wanted_datasets([0,2,3])
 models_to_test = ['lstm','dense','embedding','bidi']
 """datasets_helper.next_dataset()
 space = create_base_params('lstm',datasets_helper)

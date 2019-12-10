@@ -17,6 +17,7 @@ MaxPooling1D = tf.keras.layers.MaxPooling1D
 SimpleRNN = tf.keras.layers.SimpleRNN
 GRU = tf.keras.layers.GRU
 Dropout = tf.keras.layers.Dropout
+BatchNormalization = tf.keras.layers.BatchNormalization
 
 #utils aliases
 to_categorical = tf.keras.utils.to_categorical

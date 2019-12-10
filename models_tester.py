@@ -26,6 +26,24 @@ def resolve_network_type(network_type):
     elif network_type == 'embedding':
         return EmbeddingLSTMModel()
 
+def get_important_params_from_args(accuracy,args):
+    params = {
+        'accuracy': accuracy,
+        'dataset_num': args['dataset_num'],
+        'network_type': args['network_type'],
+        'num_of_words': 10000,
+        #'preprocess': False,
+        'max_len':args['max_len'],
+        'num_of_layers': args['num_of_layers'],
+        'num_of_neurons': args['num_of_neurons'],
+        'activation_function': args['activation_function'],
+        'dropouts': args['dropouts'],
+        'dropout_values': args['dropout_values'],
+        'batch_size': args['batch_size'],
+        'learning_rate': args['learning_rate'],
+        'optimizer': args['optimizer']
+    }
+    return params
 
 def optimize_model(args):
     print(args)
@@ -33,19 +51,19 @@ def optimize_model(args):
     datasets_helper.set_wanted_datasets([args['dataset_num']])
     datasets_helper.next_dataset()
     tokenizer = Tokenizer(num_words=args['num_of_words'])
-    # filters='#$%&()*+-<=>@[\\]^_`{|}~\t\n',
-    # lower=False, split=' ')
     generator = datasets_helper.text_generator()
     tokenizer.fit_on_texts(generator)
-    args['optimizer'] = create_optimizer(args['optimizer'],args['learning_rate'])
+    optimizer = create_optimizer(args['optimizer'],args['learning_rate'])
     model = resolve_network_type(args['network_type'])
     model.set_params(args)
+    model.optimizer = optimizer
     if args['network_type'] == 'embedding':
         model.tokenizer = tokenizer
     model.compile_model()
     model.fit_generator(datasets_helper=datasets_helper, tokenizer=tokenizer, validation_count=500)
     results = model.evaluate_generator(datasets_helper=datasets_helper, tokenizer=tokenizer)
     print(results)
+    args['results_saver'].write_any('logs',[get_important_params_from_args(results[1],args)],'a')
     del model
     del tokenizer
     del generator
@@ -66,19 +84,7 @@ def create_optimizer(name, learn_rate):
     elif name == 'rmsprop':
         return keras.optimizers.RMSprop(learning_rate=learn_rate)
 
-def find_optimal_dense_params():
-    pass
-
-def find_optimal_GRU_params():
-    pass
-
-def find_optimal_Bidirectional_params():
-    pass
-
-def find_optimal_embedding_params():
-    pass
-
-def create_base_params(network_type,dataset_helper:Dataset_Helper):
+def create_base_params(network_type,dataset_helper:Dataset_Helper,results_saver):
     if network_type == 'embedding':
         batch_size = hp.choice('batch_size',[64,128])
         num_of_layers = hp.choice('num_of_layers',[1,2])
@@ -88,11 +94,9 @@ def create_base_params(network_type,dataset_helper:Dataset_Helper):
         num_of_layers = hp.choice('num_of_layers',[1,2,3,4])
         num_of_neurons = hp.choice('num_of_neurons',[32,64,128,256])
     space = {
-        'dataset_num': hp.choice('dataset_num',[datasets_helper.dataset_position]),
-        'network_type': hp.choice('network_type',[network_type]),
-        'topic_nums': hp.choice('topic_nums',[dataset_helper.get_num_of_topics()]),
-        #'tokenizer': tokenizer,
-        #'dataset_helper': hp.choice('dataset_helper', [dataset_helper]),
+        'dataset_num': datasets_helper.dataset_position,
+        'network_type': network_type,
+        'topic_nums': dataset_helper.get_num_of_topics(),
         'num_of_words': hp.choice('num_of_words',[10000]),
         #'preprocess': False,
         'max_len': hp.choice('max_len',[100,200,300]),
@@ -101,10 +105,11 @@ def create_base_params(network_type,dataset_helper:Dataset_Helper):
         'activation_function': hp.choice('activation_function',['relu','tanh']),
         'dropouts': hp.randint('dropouts',3),
         'dropout_values': hp.uniform('dropout_values',0.01,0.2),
-        'epochs': hp.choice('epochs',[20]),#hp.randint('epochs',20),
+        'epochs': 20,#hp.randint('epochs',20),
         'batch_size': batch_size,
         'learning_rate': hp.choice('learning_rate',[0.001,0.01,0.0005]),
-        'optimizer': hp.choice('optimizer',['adam', 'rmsprop'])
+        'optimizer': hp.choice('optimizer',['adam', 'rmsprop']),
+        'results_saver': results_saver
     }
     return space
 
@@ -115,7 +120,7 @@ sys.path.append(file_dir)
 datasets_helper = Dataset_Helper(False)
 results_saver = LogWriter(log_file_desc="hyperopt-best-param-search")
 results = []
-datasets_helper.set_wanted_datasets([0,2,3])
+datasets_helper.set_wanted_datasets([2])
 models_to_test = ['lstm','dense','embedding','bidi']
 """datasets_helper.next_dataset()
 space = create_base_params('lstm',datasets_helper)
@@ -123,7 +128,7 @@ smpl = sample(space)
 print(sample(space))"""
 for model in models_to_test:
     while datasets_helper.next_dataset():
-        space = create_base_params(model,datasets_helper)
+        space = create_base_params(model,datasets_helper,results_saver)
         best = fmin(optimize_model,
             space=space,
             algo=tpe.suggest,

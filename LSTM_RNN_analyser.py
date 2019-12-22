@@ -1,10 +1,14 @@
 from aliaser import *
 import matplotlib.pyplot as plt
+from matplotlib import figure
 from training_text_generator_RNN import Training_Text_Generator_RNN
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 import os
 import sys
+import seaborn as sns
+import pandas as pd
+import numpy as np
 from sklearn.metrics import confusion_matrix
 
 file_dir = os.path.dirname(__file__)
@@ -75,15 +79,23 @@ while datasets_helper.next_dataset():
 
 
     cm = confusion_matrix(labels, predicts)
+    """cm_df = pd.DataFrame(cm)
+    plt.figure(figsize=(10,10))
+    sns.heatmap(cm_df, annot=True)
+    plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(), 'confusion_matrix'))"""
     #print(cm)
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10,10))
     ax = fig.add_subplot(111)
     cax = ax.matshow(cm)
+    for (i, j), z in np.ndenumerate(cm):
+        ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
+                #bbox=dict(boxstyle='round', facecolor='white', edgecolor='0.3'))
     plt.title('Confusion matrix of the classifier')
-    fig.colorbar(cax)
+    #fig.colorbar(cax)
     plt.xlabel('Predicted')
     plt.ylabel('True')
-    plt.show()
+    #plt.show()
+    plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),'confusion_matrix'))
     """plt.clf()
     acc = history.history['acc']
     val_acc = history.history['val_acc']

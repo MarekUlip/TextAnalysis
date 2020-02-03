@@ -120,7 +120,7 @@ sys.path.append(file_dir)
 datasets_helper = Dataset_Helper(False)
 results_saver = LogWriter(log_file_desc="hyperopt-best-param-search")
 results = []
-datasets_helper.set_wanted_datasets([2])
+datasets_helper.set_wanted_datasets([1])
 models_to_test = ['lstm','dense','embedding','bidi']
 """datasets_helper.next_dataset()
 space = create_base_params('lstm',datasets_helper)

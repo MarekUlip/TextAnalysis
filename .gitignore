@@ -72,3 +72,5 @@ fabric.properties
 /thrash
 /embeddings
 /tensorBoard
+.idea/misc.xml
+.idea/TopicAnalysisDeep.iml

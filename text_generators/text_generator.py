@@ -19,7 +19,7 @@ class TextGenerator(Sequence):
         self.preprocess = preprocess
         self.preload_dataset = preload_dataset
         self.is_predicting = is_predicting
-        self.labels = None
+        self.labels = []
         self.tmp_articles = None
         self.articles = []
         if preload_dataset:
@@ -32,6 +32,12 @@ class TextGenerator(Sequence):
         with open(self.filename, encoding='utf-8', errors='ignore') as csvfile:
             for row in csv.reader(csvfile, delimiter=self.delimeter):
                 self.articles.append([int(row[0]),preprocess_sentence(row[1]) if self.preprocess else row[1]])
+
+    def get_dataset(self):
+        self.tmp_articles = np.array(self.articles)
+        if self.is_predicting:
+            self.labels.extend(list(map(int,self.tmp_articles[:,0])))
+
 
     def __getitem__(self, item):
         self.tmp_articles = []

@@ -22,6 +22,8 @@ from bokeh.plotting import figure, output_file, show
 from bokeh.models import Label
 from bokeh.io import output_notebook
 from NeuralTopicMatrix import NeuralTopicMatrix
+import tkinter as tk
+from tkinter import simpledialog
 
 
 def extract_important_words(topics, keep_values=True):
@@ -274,6 +276,10 @@ def plot_clustering_chart(model, is_lda, docs, log_writer:LogWriter,chart_name,d
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
+root = tk.Tk()
+root.withdraw()
+test_name = simpledialog.askstring(title="Test Name",
+                                  prompt="Insert test name:",initialvalue='LDATests')
 #config = tf.compat.v1.ConfigProto( device_count = {'GPU': 1 , 'CPU': 4} )
 #sess = tf.compat.v1.Session(config=config)
 #tf.keras.backend.set_session(sess)
@@ -283,7 +289,7 @@ results = []
 
 num_of_words = 10000
 dataset_helper = Dataset_Helper(True)
-dataset_helper.set_wanted_datasets([6])
+dataset_helper.set_wanted_datasets([2])
 dataset_helper.next_dataset()
 num_of_topics = dataset_helper.get_num_of_topics()
 documents = dataset_helper.get_texts_as_list()
@@ -303,18 +309,18 @@ matrix = tokenizer.texts_to_matrix(documents, mode='binary')
 """model = Sequential()
 model.add(Dense(num_of_words*num_of_topics,activation='relu', input_shape=(num_of_words,)))
 model.add(Dense(num_of_words,activation='sigmoid'))"""
-regularization = 0.1
+regularization = 0.07
 input_row = Input(shape=(num_of_words,))
 #encoder = Dense(int(num_of_words/2), activation='relu')(input_row)
-encoder= Dense(num_of_topics, activation='relu', activity_regularizer=keras.regularizers.l1(regularization))(input_row)
+encoder= Dense(num_of_topics, activation='relu', kernel_regularizer=keras.regularizers.l1_l2(regularization))(input_row)#
 #decoder = Dense(int(num_of_words/2), activation='relu')(encoder)
 output_row = Dense(num_of_words,activation='sigmoid')(encoder)
 
 autoencoder = Model(input_row,output_row)
 #autoencoder.compile(optimizer='adadelta', loss='mse', metrics=['accuracy'])
-autoencoder.compile(optimizer='adam', loss='mse',metrics=['accuracy'])#optimizer='adadelta', loss='mse', metrics=['accuracy'])
+autoencoder.compile(optimizer='adam', loss='binary_crossentropy',metrics=['accuracy'])#optimizer='adadelta', loss='mse', metrics=['accuracy'])
 #autoencoder.compile(optimizer='adadelta', loss='categorical_crossentropy', metrics=['accuracy'])
-history = autoencoder.fit(matrix,matrix,batch_size=256,epochs=50,validation_split=0.1)
+history = autoencoder.fit(matrix,matrix,batch_size=256,epochs=30,validation_split=0.1)
 weight_in = autoencoder.get_weights()[0]
 weight_out = autoencoder.get_weights()[2]
 blob = np.array([])
@@ -331,7 +337,7 @@ log_writer = LogWriter(log_file_desc='LDATestsRegularize{}'.format(regularizatio
 log_writer.write_2D_list('topic_words_in', topic_words_in)
 log_writer.write_2D_list('topic_words_out', topic_words_out)"""
 
-log_writer = LogWriter(log_file_desc='LDATestsStopWordsRegularize{}'.format(regularization))
+log_writer = LogWriter(log_file_desc='{}{}'.format(test_name,regularization))
 topic_words_in_max = get_extremes(weight_in,num_of_topics,num_of_important_words,reverse_word_map,True,'topic_words_in_max',log_writer,dataset_helper.get_dataset_name())
 topic_words_in_min = get_extremes(weight_in,num_of_topics,num_of_important_words,reverse_word_map,False,'topic_words_in_min',log_writer,dataset_helper.get_dataset_name())
 topic_words_out_max = get_extremes(weight_out,num_of_topics,num_of_important_words,reverse_word_map,True,'topic_words_out_max',log_writer,dataset_helper.get_dataset_name())
@@ -342,8 +348,8 @@ dictionary = corpora.Dictionary(texts)
 # TODO maybe test work with dict self.dictionary.filter_extremes(no_below=2, no_above=0.5, keep_n=100000)
 doc_term_matrix = [dictionary.doc2bow(doc) for doc in texts]"""
 model = Lda(num_of_topics,num_of_important_words,
-            passes=25,
-            iterations=25)
+            passes=4,
+            iterations=4)
 model.train(documents)
 """gensim.models.LdaModel(
 doc_term_matrix,

@@ -29,7 +29,7 @@ class Lda:
             self.iterations = iterations
             self.random_state = random_state
         self.dictionary = None
-        self.model = None
+        self.model: gensim.models.LdaModel = None
         self.model_folder = os.getcwd()+"\\lda\\"
         self.model_path = self.model_folder+"model"
         self.dictionary_path = self.model_folder+"dictionary"

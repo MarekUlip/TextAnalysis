@@ -11,8 +11,9 @@ from aliaser import *
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-datasets_helper = Dataset_Helper()
-results_saver = LogWriter(log_file_desc="Dense-with-preprocessing-no-short-strip")
+datasets_helper = Dataset_Helper(True)
+datasets_helper.set_wanted_datasets([3])
+results_saver = LogWriter(log_file_desc="Dense-with-preprocessing-tfidf")
 results = []
 num_of_words = 10000
 
@@ -28,17 +29,22 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Done. Building model now.")
 
     model = Sequential()
-    enhanced_num_of_topics = int(np.ceil(datasets_helper.get_num_of_topics()*2-datasets_helper.get_num_of_topics()/2))
+    enhanced_num_of_topics = 128#int(np.ceil(datasets_helper.get_num_of_topics()*2-datasets_helper.get_num_of_topics()/2))
     #model.add(Dense(40, activation='relu', input_shape=(num_of_words,)))
     #model.add(Dense(40, activation='relu'))
     model.add(Dense(enhanced_num_of_topics, activation='relu', input_shape=(num_of_words,)))
+    model.add(keras.layers.LayerNormalization())
+    model.add(keras.layers.Dropout(0.5))
     model.add(Dense(enhanced_num_of_topics, activation='relu'))
+    model.add(keras.layers.LayerNormalization())
+    model.add(keras.layers.GaussianNoise(0.9))
     model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
 
-    model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     results_saver.add_log("Done. Now lets get training.")
-    batch_size = 512
-    history = model.fit_generator(generator=Training_Text_Generator(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()), epochs=10, validation_data=Training_Text_Generator(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
+    batch_size = 256
+    history = model.fit_generator(verbose=2,generator=Training_Text_Generator(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()),
+                                  epochs=6, validation_data=Training_Text_Generator(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
     result = model.evaluate_generator(generator=Training_Text_Generator(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()))# model.evaluate(test_sequences,test_labels)
     print(result)
@@ -59,16 +65,6 @@ while datasets_helper.next_dataset():
     plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"loss"))
 
 
-    plt.clf()
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
-    plt.plot(epochs, acc, 'bo', label='Training acc')
-    plt.plot(epochs, val_acc, 'b', label='Validation acc')
-    plt.title('Training and validation accuracy {}'.format(datasets_helper.get_dataset_name()))
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"acc"))
     plt.clf()
 
     results_saver.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()))

@@ -16,7 +16,7 @@ sys.path.append(file_dir)
 
 
 datasets_helper = Dataset_Helper(True)
-results_saver = LogWriter(log_file_desc="LSTM-embedding-128neurons-base-prep-shuffled")
+results_saver = LogWriter(log_file_desc="LSTM-embedding-128neurons-base-prep-tfidf")
 results = []
 num_of_words = 7500
 max_seq_len = 250
@@ -46,8 +46,8 @@ while datasets_helper.next_dataset():
     #model.add(Dense(enhanced_num_of_topics, activation='relu', input_shape=(num_of_words,)))
     #model.add(Dense(enhanced_num_of_topics, activation='relu'))
     model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
-    opt = keras.optimizers.Adam(learning_rate=0.0005)
-    model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    #opt = keras.optimizers.Adam(learning_rate=0.0005)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
     plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
     results_saver.add_log("Done. Now lets get training.")
     early_stop = EarlyStopping(monitor='val_accuracy', patience=3)

@@ -1,7 +1,7 @@
 from aliaser import *
 import matplotlib.pyplot as plt
 from matplotlib import figure
-from training_text_generator_RNN import Training_Text_Generator_RNN
+from training_text_generator_RNN_tfidf import Training_Text_Generator_RNN
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 import os
@@ -15,14 +15,14 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 
-datasets_helper = Dataset_Helper(False)
-results_saver = LogWriter(log_file_desc="LSTM-128neurons-base-tokenizer-no-prep-shuffled")
+datasets_helper = Dataset_Helper(True)
+results_saver = LogWriter(log_file_desc="LSTM-128neurons-base-tokenizer-prep-tfidf")
 results = []
 num_of_words = 15000
 datasets_helper.set_wanted_datasets([3])
 while datasets_helper.next_dataset():
     results_saver.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
-    validation_count = 500#datasets_helper.get_num_of_train_texts() // 10
+    validation_count = datasets_helper.get_num_of_train_texts() // 10
     tokenizer = Tokenizer(num_words=num_of_words)
                          #filters='#$%&()*+-<=>@[\\]^_`{|}~\t\n',
                          #lower=False, split=' ')
@@ -32,22 +32,28 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Done. Building model now.")
 
     batch_size = 256
+    gauss_noise = 0.9
     model:Sequential = Sequential()
-    enhanced_num_of_topics = 256#int(np.ceil(datasets_helper.get_num_of_topics()*2))#-datasets_helper.get_num_of_topics()/2))
+    enhanced_num_of_topics = 128#int(np.ceil(datasets_helper.get_num_of_topics()*2))#-datasets_helper.get_num_of_topics()/2))
     model.add(LSTM(enhanced_num_of_topics,input_shape=(1,num_of_words), return_sequences=True))
-    #model.add(Dropout(0.01))
-    model.add(keras.layers.GaussianNoise(0.3))
     #model.add(RepeatVector(3))
-    model.add(LSTM(enhanced_num_of_topics, return_sequences=True,activity_regularizer=keras.regularizers.l1(0.1)))
+    model.add(keras.layers.GaussianNoise(gauss_noise))
+    #model.add(Dropout(0.1))
+    model.add(LSTM(enhanced_num_of_topics, return_sequences=True,kernel_regularizer=keras.regularizers.l2(0.01)))
+    model.add(keras.layers.LayerNormalization())
+    model.add(Dropout(0.3))
     #model.add(keras.layers.GaussianNoise(0.2))
     model.add(LSTM(enhanced_num_of_topics))
+    model.add(keras.layers.LayerNormalization())
     #model.add(Dense(enhanced_num_of_topics, activation='relu', input_shape=(num_of_words,)))
     #model.add(Dense(enhanced_num_of_topics, activation='relu'))
     model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
     opt = keras.optimizers.Adam(learning_rate=0.0005)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+    model.summary()
     plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
     results_saver.add_log("Done. Now lets get training.")
+    results_saver.add_log('Arguments used were: num_of_words {}\nbatch_size={}\nlayer_size = {}\nNoiseAmount = {}'.format(num_of_words,batch_size,enhanced_num_of_topics,gauss_noise))
     early_stop = EarlyStopping(monitor='val_accuracy', patience=3)
     history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),preprocess=False,preload_dataset=True),
                                   epochs=10,

@@ -74,3 +74,4 @@ fabric.properties
 /tensorBoard
 .idea/misc.xml
 .idea/TopicAnalysisDeep.iml
+!/datasets/info.csv

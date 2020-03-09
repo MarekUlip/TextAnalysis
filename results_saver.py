@@ -100,13 +100,14 @@ class LogWriter:
             #params_writer = csv.writer(params_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             params_file.write(json.dumps(params_to_save))
 
-    def write_any(self,file_name,to_safe,write_mode):
+    def write_any(self,file_name,to_safe,write_mode,is_json=False):
         filename = self.path + file_name + ".txt"
         print(filename)
         os.makedirs(os.path.dirname(filename), exist_ok=True)
-        to_safe = pd.DataFrame(to_safe)
+        if not is_json:
+            to_safe = pd.DataFrame(to_safe).to_json()
         with open(filename, mode=write_mode, newline='') as params_file:
-            params_file.write(to_safe.to_json()+'\n')
+            params_file.write(to_safe+'\n')
 
     def get_plot_path(self, dataset_name,plot_name):
         path = self.path + dataset_name+"\\"+ plot_name + ".png"

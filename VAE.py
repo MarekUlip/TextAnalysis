@@ -108,7 +108,7 @@ z_mean = Dense(latent_dim, name='z_mean')(x)
 z_log_var = Dense(latent_dim, name='z_log_var')(x)
 z = keras.layers.Lambda(sampling, output_shape=(latent_dim,), name='z')([z_mean, z_log_var])
 
-encoder = Model(inputs, [z_mean, z_log_var, z], name='encoder')
+encoder = Model(inputs, z_mean, name='encoder')
 encoder.summary()
 
 latent_inputs = Input(shape=(latent_dim,), name='z_sampling')

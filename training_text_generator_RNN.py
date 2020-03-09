@@ -11,7 +11,7 @@ from helper_functions import preprocess_sentence
     return results"""
 
 class Training_Text_Generator_RNN(Sequence):
-    def __init__(self, filename, batch_size, num_of_texts,num_of_words, tokenizer: Tokenizer, delimeter, num_of_classes,start_point=0,is_predicting=False,preload_dataset=False,preprocess=False):
+    def __init__(self, filename, batch_size, num_of_texts,num_of_words, tokenizer: Tokenizer, delimeter, num_of_classes,start_point=0,is_predicting=False,preload_dataset=False,preprocess=False,is_label_vectorized=False):
         self.filename = filename
         self.batch_size = batch_size
         self.num_of_texts = num_of_texts
@@ -25,6 +25,7 @@ class Training_Text_Generator_RNN(Sequence):
         self.articles = []
         self.preload_dataset = preload_dataset
         self.preprocess = preprocess
+        self.is_label_vectorized = is_label_vectorized
         if preload_dataset:
             self.load_dataset()
 
@@ -38,7 +39,7 @@ class Training_Text_Generator_RNN(Sequence):
     def load_dataset(self):
         with open(self.filename, encoding='utf-8', errors='ignore') as csvfile:
             for row in csv.reader(csvfile, delimiter=self.delimeter):
-                self.articles.append([int(row[0]),preprocess_sentence(row[1]) if self.preprocess else row[1]])
+                self.articles.append([[int(item) for item in row[0].split(',')] if self.is_label_vectorized else int(row[0]),preprocess_sentence(row[1]) if self.preprocess else row[1]])
     def __getitem__(self, item):
         #print("returning batch for {} item".format(item))
         articles = []
@@ -48,7 +49,7 @@ class Training_Text_Generator_RNN(Sequence):
             with open(self.filename, encoding='utf-8', errors='ignore') as csvfile:
                 for row in islice(csv.reader(csvfile, delimiter=self.delimeter), self.start_point+item*self.batch_size,None):
                     #print("getting item based on {}".format(item))
-                    articles.append([int(row[0]),preprocess_sentence(row[1]) if self.preprocess else row[1]])#preprocess_sentence(row[1])])
+                    articles.append([[int(item) for item in row[0].split(',')] if self.is_label_vectorized else int(row[0]),preprocess_sentence(row[1]) if self.preprocess else row[1]])#preprocess_sentence(row[1])])
                     if len(articles) >= self.batch_size:
                         break
 
@@ -58,7 +59,13 @@ class Training_Text_Generator_RNN(Sequence):
             articles = np.array([[0,"fgdssdgdsfgdsfgdsfg"]])
         if self.is_predicting:
             self.labels.extend(list(map(int,articles[:,0])))
-        labels = to_categorical(articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
+        if type(articles[0][0]) is list:
+            labels = []
+            for art in articles:
+                labels.append(np.array(art[0],dtype=np.uint8))
+            labels = np.array(labels,dtype=np.uint8)
+        else:
+            labels = to_categorical(articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
         features = self.tokenizer.texts_to_matrix(articles[:,1],mode="binary") #vectorize_sequences(self.tokenizer.texts_to_sequences(articles[:,1]),self.num_of_words).astype(np.uint8)
         articles = None
         if self.is_predicting:

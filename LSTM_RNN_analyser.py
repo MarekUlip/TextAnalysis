@@ -1,7 +1,9 @@
+from tkinter import simpledialog
+
 from aliaser import *
 import matplotlib.pyplot as plt
 from matplotlib import figure
-from training_text_generator_RNN_tfidf import Training_Text_Generator_RNN
+from training_text_generator_RNN import Training_Text_Generator_RNN
 from helper_functions import Dataset_Helper
 from results_saver import LogWriter
 import os
@@ -10,16 +12,19 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 from sklearn.metrics import confusion_matrix
+import tkinter as tk
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
-
+root = tk.Tk()
+root.withdraw()
 
 datasets_helper = Dataset_Helper(True)
-results_saver = LogWriter(log_file_desc="LSTM-128neurons-base-tokenizer-prep-tfidf")
+results_saver = LogWriter(log_file_desc=simpledialog.askstring(title="Test Name",
+                                  prompt="Insert test name:",initialvalue='LSTM_czechTest_'))
 results = []
 num_of_words = 15000
-datasets_helper.set_wanted_datasets([3])
+datasets_helper.set_wanted_datasets([14])
 while datasets_helper.next_dataset():
     results_saver.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
     validation_count = datasets_helper.get_num_of_train_texts() // 10
@@ -32,35 +37,36 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Done. Building model now.")
 
     batch_size = 256
-    gauss_noise = 0.9
+    gauss_noise = 0.5
     model:Sequential = Sequential()
     enhanced_num_of_topics = 128#int(np.ceil(datasets_helper.get_num_of_topics()*2))#-datasets_helper.get_num_of_topics()/2))
     model.add(LSTM(enhanced_num_of_topics,input_shape=(1,num_of_words), return_sequences=True))
     #model.add(RepeatVector(3))
     model.add(keras.layers.GaussianNoise(gauss_noise))
     #model.add(Dropout(0.1))
-    model.add(LSTM(enhanced_num_of_topics, return_sequences=True,kernel_regularizer=keras.regularizers.l2(0.01)))
+    model.add(LSTM(enhanced_num_of_topics, return_sequences=True,kernel_regularizer=keras.regularizers.l2(0.1)))
     model.add(keras.layers.LayerNormalization())
-    model.add(Dropout(0.3))
+    model.add(Dropout(0.4))
     #model.add(keras.layers.GaussianNoise(0.2))
     model.add(LSTM(enhanced_num_of_topics))
-    model.add(keras.layers.LayerNormalization())
+    #model.add(keras.layers.LayerNormalization())
     #model.add(Dense(enhanced_num_of_topics, activation='relu', input_shape=(num_of_words,)))
     #model.add(Dense(enhanced_num_of_topics, activation='relu'))
     model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
     opt = keras.optimizers.Adam(learning_rate=0.0005)
     model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
     model.summary()
+    results_saver.write_any('model',model.to_json(),'w+',True)
     plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
     results_saver.add_log("Done. Now lets get training.")
     results_saver.add_log('Arguments used were: num_of_words {}\nbatch_size={}\nlayer_size = {}\nNoiseAmount = {}'.format(num_of_words,batch_size,enhanced_num_of_topics,gauss_noise))
-    early_stop = EarlyStopping(monitor='val_accuracy', patience=3)
-    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),preprocess=False,preload_dataset=True),
-                                  epochs=10,
+    early_stop = EarlyStopping(monitor='val_accuracy', patience=25,restore_best_weights=True)
+    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),preprocess=False,preload_dataset=True,is_label_vectorized=datasets_helper.vectorized_labels),
+                                  epochs=100,
                                   callbacks=[early_stop],
-                                  validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count,preprocess=False,preload_dataset=True))
+                                  validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count,preprocess=False,preload_dataset=True,is_label_vectorized=datasets_helper.vectorized_labels))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
-    result = model.evaluate_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics()))# model.evaluate(test_sequences,test_labels)
+    result = model.evaluate_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),is_label_vectorized=True))# model.evaluate(test_sequences,test_labels)
     print(result)
     result.append(datasets_helper.get_dataset_name())
     model.summary(print_fn=result.append)
@@ -76,43 +82,47 @@ while datasets_helper.next_dataset():
     plt.ylabel('Loss')
     plt.legend()
     plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"loss"))
-    gnr = Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),is_predicting=True)
+    if False:
+        gnr = Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),is_predicting=True,is_label_vectorized=datasets_helper.vectorized_labels)
 
-    predicts = model.predict_generator(generator=gnr)
-    predicts = predicts.argmax(axis=-1)
-    labels = gnr.labels[:len(predicts)]#datasets_helper.get_labels(datasets_helper.get_test_file_path())
-    #print(confusion_matrix(labels[:len(predicts)],predicts))
+        predicts = model.predict_generator(generator=gnr)
+        predicts = predicts.argmax(axis=-1)
+        labels = gnr.labels[:len(predicts)]#datasets_helper.get_labels(datasets_helper.get_test_file_path())
+        #print(confusion_matrix(labels[:len(predicts)],predicts))
 
 
-    cm = confusion_matrix(labels, predicts)
-    """cm_df = pd.DataFrame(cm)
-    plt.figure(figsize=(10,10))
-    sns.heatmap(cm_df, annot=True)
-    plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(), 'confusion_matrix'))"""
-    #print(cm)
-    fig = plt.figure(figsize=(10,10))
-    ax = fig.add_subplot(111)
-    cax = ax.matshow(cm)
-    for (i, j), z in np.ndenumerate(cm):
-        ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
-                #bbox=dict(boxstyle='round', facecolor='white', edgecolor='0.3'))
-    plt.title('Confusion matrix of the classifier')
-    #fig.colorbar(cax)
-    plt.xlabel('Predicted')
-    plt.ylabel('True')
-    #plt.show()
-    plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),'confusion_matrix'))
-    """plt.clf()
-    acc = history.history['acc']
-    val_acc = history.history['val_acc']
-    plt.plot(epochs, acc, 'bo', label='Training acc')
-    plt.plot(epochs, val_acc, 'b', label='Validation acc')
-    plt.title('Training and validation accuracy {}'.format(datasets_helper.get_dataset_name()))
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.legend()
-    plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"acc"))
-    plt.clf()"""
+        cm = confusion_matrix(labels, predicts)
+        """cm_df = pd.DataFrame(cm)
+        plt.figure(figsize=(10,10))
+        sns.heatmap(cm_df, annot=True)
+        plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(), 'confusion_matrix'))"""
+        #print(cm)
+        fig = plt.figure(figsize=(datasets_helper.get_num_of_topics(),datasets_helper.get_num_of_topics()))
+        ax = fig.add_subplot(111)
+        cax = ax.matshow(cm)
+        for (i, j), z in np.ndenumerate(cm):
+            ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
+                    #bbox=dict(boxstyle='round', facecolor='white', edgecolor='0.3'))
+        plt.title('Confusion matrix of the classifier')
+        #fig.colorbar(cax)
+        plt.xlabel('Predicted')
+        plt.ylabel('True')
+        """topic_names = datasets_helper.get_dataset_topic_names()
+        ax.set_xticklabels([''] + topic_names)
+        ax.set_yticklabels([''] + topic_names)"""
+        #plt.show()
+        plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),'confusion_matrix'))
+        """plt.clf()
+        acc = history.history['acc']
+        val_acc = history.history['val_acc']
+        plt.plot(epochs, acc, 'bo', label='Training acc')
+        plt.plot(epochs, val_acc, 'b', label='Validation acc')
+        plt.title('Training and validation accuracy {}'.format(datasets_helper.get_dataset_name()))
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.savefig(results_saver.get_plot_path(datasets_helper.get_dataset_name(),"acc"))
+        plt.clf()"""
 
     results_saver.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()))
 

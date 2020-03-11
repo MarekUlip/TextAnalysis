@@ -1,6 +1,6 @@
 import csv
 
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from lda_impl import Lda
 #from NeuralLDAanalysisMethods import *
 

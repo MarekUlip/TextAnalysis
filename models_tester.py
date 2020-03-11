@@ -3,7 +3,7 @@ import sys
 
 from hyperopt import fmin, tpe, hp,Trials, STATUS_OK,space_eval
 from hyperopt.pyll.stochastic import sample
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from aliaser import keras, Tokenizer
 import numpy as np
 from models.LSTM import LSTMModel
@@ -60,8 +60,8 @@ def optimize_model(args):
     if args['network_type'] == 'embedding':
         model.tokenizer = tokenizer
     model.compile_model()
-    model.fit_generator(datasets_helper=datasets_helper, tokenizer=tokenizer, validation_count=500)
-    results = model.evaluate_generator(datasets_helper=datasets_helper, tokenizer=tokenizer)
+    model.fit(datasets_helper=datasets_helper, tokenizer=tokenizer, validation_count=500)
+    results = model.evaluate(datasets_helper=datasets_helper, tokenizer=tokenizer)
     print(results)
     args['results_saver'].write_any('logs',[get_important_params_from_args(results[1],args)],'a')
     del model
@@ -74,8 +74,8 @@ def optimize_model(args):
 def optimize_lstm(args):
     model = LSTMModel()
     model.set_params(args)
-    model.fit_generator(datasets_helper=args['dataset_helper'],tokenizer=args['tokenizer'],validation_count=500)
-    results = model.evaluate_generator(datasets_helper=args['dataset_helper'],tokenizer=args['tokenizer'])
+    model.fit(datasets_helper=args['dataset_helper'], tokenizer=args['tokenizer'], validation_count=500)
+    results = model.evaluate(datasets_helper=args['dataset_helper'], tokenizer=args['tokenizer'])
     return -np.amax(results.history['val_acc'])
 
 def create_optimizer(name, learn_rate):

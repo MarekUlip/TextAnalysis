@@ -1,6 +1,6 @@
 import tensorflow as tf
 import matplotlib.pyplot as plt
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from results_saver import LogWriter
 from models.Dense import DenseModel
 import os
@@ -36,8 +36,8 @@ for model in models:
 
         plot_model(model.get_compiled_model(), results_saver.get_plot_path("", "model-graph"), show_shapes=True)
         results_saver.add_log("Done. Now lets get training.")
-        history = model.fit_generator(datasets_helper=datasets_helper,batch_size=batch_size,tokenizer=tokenizer,validation_count=validation_count)
-        result = model.evaluate_generator(datasets_helper=datasets_helper,batch_size=batch_size,tokenizer=tokenizer)# model.evaluate(test_sequences,test_labels)
+        history = model.fit(datasets_helper=datasets_helper, batch_size=batch_size, tokenizer=tokenizer, validation_count=validation_count)
+        result = model.evaluate(datasets_helper=datasets_helper, batch_size=batch_size, tokenizer=tokenizer)# model.evaluate(test_sequences,test_labels)
         print(result)
         result.append(datasets_helper.get_dataset_name())
         results.append(result)

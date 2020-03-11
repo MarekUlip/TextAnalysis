@@ -2,7 +2,7 @@ import csv
 import numpy as np
 from aliaser import *
 from itertools import islice
-from helper_functions import preprocess_sentence
+from dataset_helper import preprocess_sentence
 
 class Training_Text_Generator_RNN_Embedding(Sequence):
     def __init__(self, filename, batch_size, num_of_texts,num_of_words, tokenizer: Tokenizer, delimeter, num_of_classes,max_len,start_point=0):

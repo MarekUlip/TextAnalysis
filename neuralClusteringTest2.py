@@ -11,7 +11,7 @@ from text_generators.training_text_generator import TrainingTextGenerator
 import seaborn as sns
 import sklearn.metrics
 import matplotlib.pyplot as plt
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 
 def autoencoder_bad(dims, act='relu', init='glorot_uniform'):
     n_stacks = len(dims) - 1

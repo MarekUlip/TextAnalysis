@@ -3,7 +3,7 @@ import operator
 
 from sklearn.manifold import TSNE
 from NeuralLDAanalysisMethods import *
-from helper_functions import Dataset_Helper, stp_wrds
+from dataset_helper import Dataset_Helper, stp_wrds
 from results_saver import LogWriter
 from gensim import corpora
 import matplotlib.pyplot as plt

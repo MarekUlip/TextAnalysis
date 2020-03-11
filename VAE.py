@@ -6,7 +6,7 @@ import numpy as np
 import sys
 import tkinter as tk
 from tkinter import simpledialog
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 
 def sampling(args):
     z_mean, z_log_var = args

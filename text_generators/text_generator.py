@@ -2,7 +2,7 @@ from aliaser import Sequence, Tokenizer
 import numpy as np
 import csv
 from itertools import islice
-from helper_functions import preprocess_sentence
+from dataset_helper import preprocess_sentence
 
 class TextGenerator(Sequence):
     def __init__(self, filename, batch_size, num_of_texts, num_of_words, tokenizer: Tokenizer, delimeter,

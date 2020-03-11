@@ -1,4 +1,4 @@
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from collections import Counter
 
 helper = Dataset_Helper(False)

@@ -1,7 +1,7 @@
 #from __future__ import absolute_import, division, print_function, unicode_literals
 
 
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from results_saver import LogWriter
 from gensim import corpora
 import matplotlib.pyplot as plt

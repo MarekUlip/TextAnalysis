@@ -2,7 +2,7 @@ from aliaser import *
 import matplotlib.pyplot as plt
 from matplotlib import figure
 from training_text_generator_RNN_embedding import Training_Text_Generator_RNN_Embedding
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from results_saver import LogWriter
 import os
 import sys
@@ -51,12 +51,12 @@ while datasets_helper.next_dataset():
     plot_model(model,results_saver.get_plot_path("","model-graph"),show_shapes=True)
     results_saver.add_log("Done. Now lets get training.")
     early_stop = EarlyStopping(monitor='val_accuracy', patience=3)
-    history = model.fit_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len=max_seq_len),
+    history = model.fit(x=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len=max_seq_len),
                                   epochs=30,
                                   callbacks=[early_stop],
                                   validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count,max_len=max_seq_len))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
-    result = model.evaluate_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len=max_seq_len))# model.evaluate(test_sequences,test_labels)
+    result = model.evaluate(x=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),max_len=max_seq_len))# model.evaluate(test_sequences,test_labels)
     print(result)
     result.append(datasets_helper.get_dataset_name())
     model.summary(print_fn=result.append)

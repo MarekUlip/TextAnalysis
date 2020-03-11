@@ -4,7 +4,7 @@ from aliaser import *
 import matplotlib.pyplot as plt
 from matplotlib import figure
 from training_text_generator_RNN import Training_Text_Generator_RNN
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from results_saver import LogWriter
 import os
 import sys
@@ -61,12 +61,12 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Done. Now lets get training.")
     results_saver.add_log('Arguments used were: num_of_words {}\nbatch_size={}\nlayer_size = {}\nNoiseAmount = {}'.format(num_of_words,batch_size,enhanced_num_of_topics,gauss_noise))
     early_stop = EarlyStopping(monitor='val_accuracy', patience=25,restore_best_weights=True)
-    history = model.fit_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),preprocess=False,preload_dataset=True,is_label_vectorized=datasets_helper.vectorized_labels),
+    history = model.fit(x=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, datasets_helper.get_num_of_train_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),preprocess=False,preload_dataset=True,is_label_vectorized=datasets_helper.vectorized_labels),
                                   epochs=100,
                                   callbacks=[early_stop],
                                   validation_data=Training_Text_Generator_RNN(datasets_helper.get_train_file_path(), batch_size, validation_count, num_of_words, tokenizer, ";", datasets_helper.get_num_of_topics(),start_point=datasets_helper.get_num_of_train_texts()-validation_count,preprocess=False,preload_dataset=True,is_label_vectorized=datasets_helper.vectorized_labels))
     #history = model.fit(x_train,y_train, epochs=8,batch_size=256,validation_data=(x_validation,y_valitadio))
-    result = model.evaluate_generator(generator=Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),is_label_vectorized=True))# model.evaluate(test_sequences,test_labels)
+    result = model.evaluate(x=Training_Text_Generator_RNN(datasets_helper.get_test_file_path(), batch_size, datasets_helper.get_num_of_test_texts(), num_of_words, tokenizer, ";",datasets_helper.get_num_of_topics(),is_label_vectorized=True))# model.evaluate(test_sequences,test_labels)
     print(result)
     result.append(datasets_helper.get_dataset_name())
     model.summary(print_fn=result.append)

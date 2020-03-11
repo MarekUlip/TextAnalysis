@@ -3,7 +3,7 @@ import os
 from aliaser import *
 import sys
 
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from results_saver import LogWriter
 from training_text_generator_RNN_embedding import Training_Text_Generator_RNN_Embedding
 
@@ -165,9 +165,9 @@ model.summary()
 #print(x_train)
 #print(y_train)
 
-model.fit_generator( generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), 128, datasets_helper.get_num_of_train_texts(), MAX_NB_WORDS, tokenizer, ";",datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH), epochs=10, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), 128, VALIDATION_SPLIT, MAX_NB_WORDS, tokenizer, ";", datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH,start_point=datasets_helper.get_num_of_train_texts()-VALIDATION_SPLIT))
+model.fit(x=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), 128, datasets_helper.get_num_of_train_texts(), MAX_NB_WORDS, tokenizer, ";",datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH), epochs=10, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), 128, VALIDATION_SPLIT, MAX_NB_WORDS, tokenizer, ";", datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH,start_point=datasets_helper.get_num_of_train_texts()-VALIDATION_SPLIT))
 
-result = model.evaluate_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), 128, datasets_helper.get_num_of_test_texts(), MAX_NB_WORDS, tokenizer, ";",datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH))
+result = model.evaluate(x=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), 128, datasets_helper.get_num_of_test_texts(), MAX_NB_WORDS, tokenizer, ";",datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH))
 print(result)
 results.append(result)
 
@@ -237,13 +237,13 @@ print("model fitting - more complex convolutional neural network")
 
 model.summary()
 
-model.fit_generator( generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), 50, datasets_helper.get_num_of_train_texts(), MAX_NB_WORDS, tokenizer, ";",datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH), epochs=10, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), 50, VALIDATION_SPLIT, MAX_NB_WORDS, tokenizer, ";", datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH,start_point=datasets_helper.get_num_of_train_texts()-VALIDATION_SPLIT))
+model.fit(x=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), 50, datasets_helper.get_num_of_train_texts(), MAX_NB_WORDS, tokenizer, ";",datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH), epochs=10, validation_data=Training_Text_Generator_RNN_Embedding(datasets_helper.get_train_file_path(), 50, VALIDATION_SPLIT, MAX_NB_WORDS, tokenizer, ";", datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH,start_point=datasets_helper.get_num_of_train_texts()-VALIDATION_SPLIT))
 
 
 
 
 
-result = model.evaluate_generator(generator=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), 128, datasets_helper.get_num_of_test_texts(), MAX_NB_WORDS, tokenizer, ";",datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH))
+result = model.evaluate(x=Training_Text_Generator_RNN_Embedding(datasets_helper.get_test_file_path(), 128, datasets_helper.get_num_of_test_texts(), MAX_NB_WORDS, tokenizer, ";",datasets_helper.get_num_of_topics(),MAX_SEQUENCE_LENGTH))
 
 print(result)
 results.append(result)

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 from embedding_loader import get_embedding_matrix
 from training_text_generator_RNN_embedding import Training_Text_Generator_RNN_Embedding
-from helper_functions import Dataset_Helper
+from dataset_helper import Dataset_Helper
 from results_saver import LogWriter
 import os
 import sys
@@ -60,7 +60,7 @@ while datasets_helper.next_dataset():
     results_saver.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
     gensim_text_generator = GensimTextGenerator(datasets_helper.get_train_file_path(),preprocess=preprocess)
     gensim_text_generator.init_dictionary()
-    lda = LdaModel(corpus=gensim_text_generator.get_corpus(), id2word=gensim_text_generator.get_dictionary(), num_topics=datasets_helper.get_num_of_topics(),num_terms=num_of_words,passes=20,iterations=20)
+    lda = LdaModel(corpus=gensim_text_generator.get_corpus(), id2word=gensim_text_generator.get_dictionary(), num_topics=datasets_helper.get_num_of_topics(),passes=20,iterations=20)
     topic_words = extract_important_words(get_topics(lda,10),False)
     print(topic_words)
     validation_count = 500#datasets_helper.get_num_of_train_texts() // 10

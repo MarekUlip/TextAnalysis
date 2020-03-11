@@ -106,10 +106,10 @@ class Model:
     def get_current_model(self):
         return self.model
 
-    def fit_generator(self, datasets_helper, tokenizer, validation_count):
+    def fit(self, datasets_helper, tokenizer, validation_count):
         early_stop = EarlyStopping(monitor='val_accuracy', patience=3)
-        return self.model.fit_generator(
-            generator=self.train_text_generator(datasets_helper.get_train_file_path(), self.batch_size,
+        return self.model.fit(
+            x=self.train_text_generator(datasets_helper.get_train_file_path(), self.batch_size,
                                                 datasets_helper.get_num_of_train_texts(),
                                                 self.num_of_words, tokenizer, ";",
                                                 datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False),
@@ -122,9 +122,9 @@ class Model:
                                                       datasets_helper.get_num_of_topics(),
                                                       start_point=datasets_helper.get_num_of_train_texts() - validation_count, max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
 
-    def evaluate_generator(self, datasets_helper, tokenizer):
-        return self.model.evaluate_generator(
-            generator=self.train_text_generator(datasets_helper.get_test_file_path(), self.batch_size,
+    def evaluate(self, datasets_helper, tokenizer):
+        return self.model.evaluate(
+            x=self.train_text_generator(datasets_helper.get_test_file_path(), self.batch_size,
                                                 datasets_helper.get_num_of_test_texts(),
                                                 self.num_of_words, tokenizer, ";",
                                                 datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))

@@ -1,4 +1,4 @@
-from aliaser import Sequence, Tokenizer
+from aliaser import Sequence, Tokenizer, to_categorical
 import numpy as np
 import csv
 from itertools import islice
@@ -40,6 +40,11 @@ class TextGenerator(Sequence):
         if self.is_predicting:
             self.labels.extend(list(map(int,self.tmp_articles[:,0])))
 
+    def get_labels(self):
+        if self.dataset_helper.vectorized_labels:
+            return self.tmp_articles[:,0]
+        else:
+            return to_categorical(self.tmp_articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
 
     def __getitem__(self, item):
         self.tmp_articles = []

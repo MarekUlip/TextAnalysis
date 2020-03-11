@@ -1,7 +1,14 @@
 import os
 import sys
 import csv
+from enum import Enum
+from itertools import islice
+
 from gensim.parsing import preprocessing
+
+class DatasetType(Enum):
+    TRAIN = 0
+    TEST = 1
 
 maxInt = sys.maxsize
 
@@ -105,6 +112,40 @@ class Dataset_Helper():
         self.change_dataset(self.dataset_position)
         return True
 
+    def convert_raw_line_to_item(self, line):
+        return [[int(item) for item in line[0].split(',')] if self.vectorized_labels else int(line[0]),
+         self.preprocess_func(line[1]) if self.preprocess else line[1]]
+
+    def get_file_stream_from_dataset_type(self, dataset_type):
+        file_stream = None
+        if dataset_type == DatasetType.TRAIN:
+            file_stream = open(self.get_train_file_path(), encoding="utf-8", errors="ignore")
+        elif dataset_type == DatasetType.TEST:
+            file_stream = open(self.get_test_file_path(), encoding="utf-8", errors="ignore")
+        return file_stream
+
+    def get_dataset(self, dataset_type=DatasetType.TRAIN, delimeter=';',path=None):
+        if path is None:
+            file_stream = self.get_file_stream_from_dataset_type(dataset_type)
+        else:
+            file_stream = self.open_file_stream(path)
+        dataset = []
+        for row in csv.reader(file_stream, delimiter=delimeter):
+            dataset.append(self.convert_raw_line_to_item(row))
+        return dataset
+
+    def get_dataset_slice(self, start, slice_size, dataset_type=DatasetType.TRAIN, delimeter=';',path=None):
+        if path is None:
+            file_stream = self.get_file_stream_from_dataset_type(dataset_type)
+        else:
+            file_stream = self.open_file_stream(path)
+        slice = []
+        for row in islice(csv.reader(file_stream, delimiter=delimeter), start, None):
+            slice.append(self.convert_raw_line_to_item(row))
+            if len(slice) >= slice_size:
+                break
+        return slice
+
     def get_texts_as_list(self, csv_file_stream=None):
         return list(self.text_generator(csv_file_stream))
 
@@ -178,7 +219,7 @@ class Dataset_Helper():
         for s in csv.reader(csv_file_stream, delimiter=';'):
             # print("getting item based on {}".format(item))
             if self.preprocess:
-                yield preprocess_sentence(s[1])
+                yield self.preprocess_func(s[1])
             else:
                 yield s[1]
 

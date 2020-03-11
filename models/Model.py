@@ -112,14 +112,14 @@ class Model:
             x=self.train_text_generator(datasets_helper.get_train_file_path(), self.batch_size,
                                                 datasets_helper.get_num_of_train_texts(),
                                                 self.num_of_words, tokenizer, ";",
-                                                datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False),
+                                                datasets_helper, max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False),
                 epochs=self.epochs,
             callbacks=[early_stop],
             verbose=2,
             validation_data=self.train_text_generator(datasets_helper.get_train_file_path(),
                                                       self.batch_size, validation_count, self.num_of_words,
                                                       tokenizer, ";",
-                                                      datasets_helper.get_num_of_topics(),
+                                                      datasets_helper,
                                                       start_point=datasets_helper.get_num_of_train_texts() - validation_count, max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
 
     def evaluate(self, datasets_helper, tokenizer):
@@ -127,5 +127,5 @@ class Model:
             x=self.train_text_generator(datasets_helper.get_test_file_path(), self.batch_size,
                                                 datasets_helper.get_num_of_test_texts(),
                                                 self.num_of_words, tokenizer, ";",
-                                                datasets_helper.get_num_of_topics(), max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
+                                                datasets_helper, max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
 

@@ -186,7 +186,7 @@ while datasets_helper.next_dataset():
     model = get_model_from_type(tested_model,datasets_helper)
     model.summary()
 
-    log_writer.add_log("Done. Now lets get training.")
+    log_writer.add_log("Done. Preparing generators.")
     log_writer.add_log(
         'Arguments used were: batch_size={}\nNum_of_epochs={}\ntokenizer_mode={}'.format(batch_size, epochs,tokenizer_mode))
     early_stop = EarlyStopping(monitor='val_accuracy', patience=3, restore_best_weights=True)
@@ -203,6 +203,7 @@ while datasets_helper.next_dataset():
         num_of_words, tokenizer, ";",
         datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
         start_point=datasets_helper.get_num_of_train_texts() - val_data_count, tokenizer_mode=tokenizer_mode)
+    log_writer.add_log('Done. Starting training.')
     history = model.fit(
         x=train,
         epochs=epochs,
@@ -214,6 +215,7 @@ while datasets_helper.next_dataset():
         num_of_words, tokenizer, ";",
         datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
         tokenizer_mode=tokenizer_mode)
+    log_writer.add_log('Training done. Starting testing.')
     result = model.evaluate(x=test)
     print(result)
     result.append(datasets_helper.get_dataset_name())
@@ -230,6 +232,7 @@ while datasets_helper.next_dataset():
     log_writer.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()), True)
 
     log_writer.write_2D_list("results", results, 'a+')
+    results.clear()
 log_writer.end_logging()
 
 

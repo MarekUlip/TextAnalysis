@@ -1,13 +1,12 @@
-from aliaser import to_categorical, Tokenizer, pad_sequences
-import numpy as np
+from neural_networks.aliaser import Tokenizer, pad_sequences
 from text_generators.text_generator import TextGenerator
 
 
 class TrainingTextGeneratorRNNEmbedding(TextGenerator):
     def __init__(self, filename, batch_size, num_of_texts, num_of_words, tokenizer: Tokenizer, delimeter,
-                 dataset_helper, max_len=None, start_point=0, preprocess=False,preload_dataset=True, is_predicting=False):
+                 dataset_helper, max_len=None, start_point=0, preprocess=False,preload_dataset=True, is_predicting=False, tokenizer_mode='binary'):
         super().__init__(filename, batch_size, num_of_texts, num_of_words, tokenizer, delimeter, dataset_helper,
-                         max_len, start_point, preprocess,preload_dataset,is_predicting)
+                         max_len, start_point, preprocess,preload_dataset,is_predicting, tokenizer_mode)
 
     def __getitem__(self, item):
         super().__getitem__(item)

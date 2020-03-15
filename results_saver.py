@@ -6,18 +6,24 @@ import json
 import time
 import pandas as pd
 
+from sklearn.metrics import confusion_matrix
+import numpy as np
+
+from neural_networks.aliaser import plot_model
+from dataset_loader.dataset_helper import Dataset_Helper,get_root_folder
+
 class LogWriter:
-    def __init__(self, log_file_path=None,log_file_desc="",base_time =str(int(round(time.time()) * 1000))):
+    def __init__(self, log_file_path=None,log_file_desc="",base_time =str(int(round(time.time()) * 1000)),result_desc='Neural'):
         """
         :param log_file_path: path to a file into which logs will be written
         """
         if log_file_path is None:
-            self.path = os.getcwd()+"\\results\\"+base_time+"{}\\".format(log_file_desc)
+            self.path = get_root_folder()+"\\results\\{}\\".format(result_desc)+base_time+"{}\\".format(log_file_desc)
         else:
             self.path = log_file_path
         self.logs = ["*****************\n"]
 
-    def add_log(self, log):
+    def add_log(self, log, save_now=False):
         """
         Adds on line into log file. Note that this method does not write to file. Use append_to_file to perform file writting
         :param log: Text to be appended
@@ -25,7 +31,7 @@ class LogWriter:
         log = str(datetime.datetime.now()) + ": "+log+"\n"
         print(log)
         self.logs.append(log)
-        if len(self.logs) > 10:
+        if len(self.logs) > 10 or save_now:
             self.append_to_logfile()
 
     def append_to_logfile(self):
@@ -110,9 +116,67 @@ class LogWriter:
             params_file.write(to_safe+'\n')
 
     def get_plot_path(self, dataset_name,plot_name):
-        path = self.path + dataset_name+"\\"+ plot_name + ".png"
+        return self.convert_name_to_file_path(dataset_name,plot_name,'.png')
+
+    def convert_name_to_file_path(self,dataset_name, name, file_type=''):
+        path = self.path + dataset_name + "\\" + name + file_type
         os.makedirs(os.path.dirname(path), exist_ok=True)
         return path
 
+
     def apped_to_desc(self, desc):
         self.path += desc
+
+
+
+
+def finish_dataset(model, gnr, dataset_helper: Dataset_Helper, log_writer: LogWriter, history):
+    log_writer.write_any('model', model.to_json(), 'w+', True)
+    plot_model(model, log_writer.get_plot_path("", "model-graph"), show_shapes=True)
+    model.save_weights(log_writer.convert_name_to_file_path(dataset_helper.get_dataset_name(),'weights','.h5'))
+    loss = history.history['loss']
+    val_loss = history.history['val_loss']
+    epochs = range(1, len(loss) + 1)
+    plt.plot(epochs, loss, 'bo', label='Training loss')
+    plt.plot(epochs, val_loss, 'b', label='Validation loss')
+    plt.title('Training and validation loss {}'.format(dataset_helper.get_dataset_name()))
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(log_writer.get_plot_path(dataset_helper.get_dataset_name(), "loss"))
+    plt.clf()
+
+    if not dataset_helper.vectorized_labels:
+        predicts = model.predict(x=gnr)
+        predicts = predicts.argmax(axis=-1)
+        labels = gnr.labels[:len(predicts)]  # datasets_helper.get_labels(datasets_helper.get_test_file_path())
+        # print(confusion_matrix(labels[:len(predicts)],predicts))
+
+        cm = confusion_matrix(labels, predicts)
+        # print(cm)
+        fig = plt.figure(figsize=(dataset_helper.get_num_of_topics(), dataset_helper.get_num_of_topics()))
+        ax = fig.add_subplot(111)
+        cax = ax.matshow(cm)
+        for (i, j), z in np.ndenumerate(cm):
+            ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
+            # bbox=dict(boxstyle='round', facecolor='white', edgecolor='0.3'))
+        plt.title('Confusion matrix of the classifier')
+        fig.colorbar(cax)
+        plt.xlabel('Predicted')
+        plt.ylabel('True')
+        """topic_names = datasets_helper.get_dataset_topic_names()
+        ax.set_xticklabels([''] + topic_names)
+        ax.set_yticklabels([''] + topic_names)"""
+        plt.savefig(log_writer.get_plot_path(dataset_helper.get_dataset_name(), 'confusion_matrix'))
+        plt.clf()
+
+    acc = history.history['accuracy']
+    val_acc = history.history['val_accuracy']
+    plt.plot(epochs, acc, 'bo', label='Training accuracy')
+    plt.plot(epochs, val_acc, 'b', label='Validation accuracy')
+    plt.title('Training and validation accuracy {}'.format(dataset_helper.get_dataset_name()))
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(log_writer.get_plot_path(dataset_helper.get_dataset_name(), "acc"))
+    plt.clf()

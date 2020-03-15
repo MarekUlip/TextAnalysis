@@ -1,12 +1,10 @@
-from aliaser import Sequence, Tokenizer, to_categorical
+from neural_networks.aliaser import Sequence, Tokenizer, to_categorical
 import numpy as np
-import csv
-from itertools import islice
-from dataset_helper import Dataset_Helper
+from dataset_loader.dataset_helper import Dataset_Helper
 
 class TextGenerator(Sequence):
     def __init__(self, filename, batch_size, num_of_texts, num_of_words, tokenizer: Tokenizer, delimeter,
-                 dataset_helper:Dataset_Helper, max_len=None, start_point=0, preprocess=False,preload_dataset=True, is_predicting=False):
+                 dataset_helper:Dataset_Helper, max_len=None, start_point=0, preprocess=False,preload_dataset=True, is_predicting=False, tokenizer_mode='binary'):
         self.filename = filename
         self.batch_size = batch_size
         self.num_of_texts = num_of_texts
@@ -20,6 +18,7 @@ class TextGenerator(Sequence):
         self.preload_dataset = preload_dataset
         self.is_predicting = is_predicting
         self.dataset_helper = dataset_helper
+        self.tokenizer_mode = tokenizer_mode
         self.labels = []
         self.tmp_articles = None
         self.articles = []
@@ -46,6 +45,9 @@ class TextGenerator(Sequence):
         else:
             return to_categorical(self.tmp_articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
 
+    def get_basic_tokenizer_matrix(self):
+        return self.tokenizer.texts_to_matrix(self.tmp_articles[:, 1], mode=self.tokenizer_mode)
+
     def __getitem__(self, item):
         self.tmp_articles = []
         if self.preload_dataset:
@@ -61,6 +63,7 @@ class TextGenerator(Sequence):
         self.tmp_articles = np.array(self.tmp_articles)
         if len(self.tmp_articles.shape) < 2:
             print("Working around...")
+            print(self.start_point)
             self.tmp_articles = np.array([[0, "fgdssdgdsfgdsfgdsfg"]])
         if self.is_predicting:
             self.labels.extend(list(map(int,self.tmp_articles[:,0])))

@@ -1,8 +1,8 @@
-from aliaser import Sequence,to_categorical,Tokenizer
+from neural_networks.aliaser import Sequence,to_categorical,Tokenizer
 import csv
 import numpy as np
 from itertools import islice
-from dataset_helper import preprocess_sentence
+from dataset_loader.dataset_helper import preprocess_sentence
 
 """def vectorize_sequences(sequences, dimension=20000):
     results = np.zeros((len(sequences),dimension))

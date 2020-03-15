@@ -1,4 +1,4 @@
-from dataset_helper import preprocess_sentence
+from dataset_loader.dataset_helper import preprocess_sentence
 from gensim.corpora import Dictionary
 
 class GensimTextGenerator:

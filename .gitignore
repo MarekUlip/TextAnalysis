@@ -74,4 +74,5 @@ fabric.properties
 /tensorBoard
 .idea/misc.xml
 .idea/TopicAnalysisDeep.iml
+/dataset_loader/majka.w-lt
 !/datasets/info.csv

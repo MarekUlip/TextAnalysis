@@ -1,0 +1,15 @@
+0;Reuters;10;5770;2255;eng;0
+1;dbpedia;11;80259;10092;eng;0
+2;AGs-News;4;4954;302;eng;0
+3;20-newsgroups;20;10332;6887;eng;0
+4;dbpedia-full;14;560000;70000;eng;0
+5;AGs-News-full;4;120000;7600;eng;0
+6;Yelp;8;200000;40000;eng;0
+7;20-newsgroups-7topics;7;10332;6887;eng;0
+8;20-newsgroups-reshuffled;20;10332;6887;eng;0
+9;csfd;10;16861;4216;eng;0
+10;csfd-multilabel;10;40259;10065;eng;0
+11;csfd-multilabel-balanced;10;12792;3198;eng;0
+12;csfd-multilabel-balanced-no-drama;10;10288;2572;eng;0
+13;csfd-multilabel-balanced-no-drama-vector;7;11576;2894;cz;1
+14;csfd-multilabel-balanced-no-drama-vector;10;8292;2073;cz;1

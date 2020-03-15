@@ -133,7 +133,7 @@ class LogWriter:
 def finish_dataset(model, gnr, dataset_helper: Dataset_Helper, log_writer: LogWriter, history):
     log_writer.write_any('model', model.to_json(), 'w+', True)
     plot_model(model, log_writer.get_plot_path("", "model-graph"), show_shapes=True)
-    model.save_weights(log_writer.convert_name_to_file_path(dataset_helper.get_dataset_name(),'weights','.h5'))
+    #model.save_weights(log_writer.convert_name_to_file_path(dataset_helper.get_dataset_name(),'weights','.h5'))
     loss = history.history['loss']
     val_loss = history.history['val_loss']
     epochs = range(1, len(loss) + 1)

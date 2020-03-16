@@ -147,13 +147,18 @@ def finish_dataset(model, gnr, dataset_helper: Dataset_Helper, log_writer: LogWr
     plt.clf()
 
     if not dataset_helper.vectorized_labels:
-        predicts = model.predict(x=gnr)
+        x = []
+        for i in range(len(gnr)):
+            x.extend(gnr.__getitem__(i))
+        x = np.array(x)
+        labels = gnr.labels
+        predicts = model.predict(x)
         predicts = predicts.argmax(axis=-1)
-        labels = gnr.labels[:len(predicts)]  # datasets_helper.get_labels(datasets_helper.get_test_file_path())
+        #labels = np.array(gnr.labels[:len(predicts)])  # datasets_helper.get_labels(datasets_helper.get_test_file_path())
         # print(confusion_matrix(labels[:len(predicts)],predicts))
 
         cm = confusion_matrix(labels, predicts)
-        # print(cm)
+        #print(cm)
         fig = plt.figure(figsize=(dataset_helper.get_num_of_topics(), dataset_helper.get_num_of_topics()))
         ax = fig.add_subplot(111)
         cax = ax.matshow(cm)

@@ -167,13 +167,13 @@ log_writer = LogWriter(log_file_desc=simpledialog.askstring(title="Test Name",
 results = []
 num_of_words = 15000
 batch_size = 256
-epochs = 1
+epochs = 30
 val_split = 0.2
 max_seq_len = 300
-tokenizer_mode = 'tfidf'
+tokenizer_mode = 'binary'
 
 
-datasets_helper.set_wanted_datasets([0,1,2,3,6,9])
+datasets_helper.set_wanted_datasets([0,1,2,3,6])
 while datasets_helper.next_dataset():
     val_data_count = int(datasets_helper.get_num_of_train_texts() * val_split)
     log_writer.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
@@ -189,7 +189,7 @@ while datasets_helper.next_dataset():
     log_writer.add_log("Done. Preparing generators.")
     log_writer.add_log(
         'Arguments used were: batch_size={}\nNum_of_epochs={}\ntokenizer_mode={}'.format(batch_size, epochs,tokenizer_mode))
-    early_stop = EarlyStopping(monitor='val_accuracy', patience=3, restore_best_weights=True)
+    early_stop = EarlyStopping(monitor='val_accuracy', patience=5, restore_best_weights=True)
     text_generator = get_text_generator_class(tested_model)
     train = TrainingTextGeneratorRNN(
         datasets_helper.get_train_file_path(), batch_size,
@@ -226,7 +226,7 @@ while datasets_helper.next_dataset():
         datasets_helper.get_test_file_path(), batch_size,
         datasets_helper.get_num_of_test_texts(),
         num_of_words, tokenizer, ";",
-        datasets_helper, max_len=max_seq_len,preprocess=preprocess, preload_dataset=True, is_predicting=True, tokenizer_mode=tokenizer_mode)
+        datasets_helper, max_len=max_seq_len,preprocess=preprocess, preload_dataset=False, is_predicting=True, tokenizer_mode=tokenizer_mode)
 
     finish_dataset(model, gnr, datasets_helper, log_writer, history)
     log_writer.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()), True)

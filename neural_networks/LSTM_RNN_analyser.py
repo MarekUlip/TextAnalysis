@@ -17,7 +17,7 @@ log_writer = LogWriter(log_file_desc=simpledialog.askstring(title="Test Name",
                                                             prompt="Insert test name:", initialvalue='LSTM_'))
 results = []
 num_of_words = 15000
-datasets_helper.set_wanted_datasets([3])#[0,1,2,3,6,9])
+datasets_helper.set_wanted_datasets([2])#[0,1,2,3,6,9])
 while datasets_helper.next_dataset():
     log_writer.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
     tokenizer = Tokenizer(num_words=num_of_words)

@@ -41,7 +41,7 @@ class TextGenerator(Sequence):
 
     def get_labels(self):
         if self.dataset_helper.vectorized_labels:
-            return self.tmp_articles[:,0]
+            return np.array(self.tmp_articles[:,0].tolist(),dtype=np.uint8)
         else:
             return to_categorical(self.tmp_articles[:,0], num_classes=self.num_of_classes, dtype=np.uint8)
 

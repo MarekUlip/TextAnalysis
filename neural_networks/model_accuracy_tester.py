@@ -39,8 +39,8 @@ def get_LSTM_model(datasets_helper, params=None):
 def get_dense_model(datasets_helper, params=None):
     model = Sequential()
     model.add(Dense(128, activation='relu', input_shape=(num_of_words,)))
-    model.add(keras.layers.LayerNormalization())
-    model.add(keras.layers.GaussianNoise(0.5))
+    #model.add(keras.layers.LayerNormalization())
+    model.add(keras.layers.GaussianNoise(0.3))
     model.add(Dense(128, activation='relu'))
     model.add(keras.layers.LayerNormalization())
     model.add(keras.layers.Dropout(0.3))
@@ -139,7 +139,7 @@ def get_embedding_trained_model(datasets_helper, params=None):
     return model
 
 def get_text_generator_class(model_type, params=None):
-    if model_type in [0]:
+    if model_type in [ModelType.DENSE]:
         return TrainingTextGenerator
     if model_type in [ModelType.RNN,ModelType.GRU,ModelType.LSTM,ModelType.BIDI_GRU, ModelType.CONV, ModelType.CONV_GRU]:
         return TrainingTextGeneratorRNN
@@ -152,18 +152,32 @@ def get_model_from_type(model_type, datasets_helper, params=None):
         return get_LSTM_model(datasets_helper,params)
     elif model_type == ModelType.DENSE:
         return get_dense_model(datasets_helper,params)
+    elif model_type == ModelType.BIDI_GRU:
+        return get_bidi_model(datasets_helper,params)
+    elif model_type == ModelType.CONV:
+        return get_conv_model(datasets_helper,params)
+    elif model_type == ModelType.CONV_GRU:
+        return get_conv_gru_model(datasets_helper,params)
+    elif model_type == ModelType.GRU:
+        return get_GRU_model(datasets_helper,params)
+    elif model_type == ModelType.RNN:
+        return get_RNN_model(datasets_helper,params)
+    elif model_type == ModelType.EMBEDDING_LSTM:
+        return get_embedding_trained_model(datasets_helper,params)
+    elif model_type == ModelType.EMBEDDING_TRAINED_LSTM:
+        return get_embedding_model(datasets_helper,params)
     return Sequential()
 
-tested_model = ModelType.LSTM
+tested_model = ModelType.DENSE
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 root = tk.Tk()
 root.withdraw()
 
-preprocess = False
+preprocess = True
 datasets_helper = Dataset_Helper(preprocess)
 log_writer = LogWriter(log_file_desc=simpledialog.askstring(title="Test Name",
-                                                            prompt="Insert test name:", initialvalue='{}_{}'.format(tested_model.name,'prep_' if preprocess else 'no-prep_')))
+                                                            prompt="Insert test name:", initialvalue='{}_{}'.format(tested_model.name,'prep_' if preprocess else 'no-prep_')),result_desc='debug')
 results = []
 num_of_words = 15000
 batch_size = 256
@@ -173,7 +187,7 @@ max_seq_len = 300
 tokenizer_mode = 'binary'
 
 
-datasets_helper.set_wanted_datasets([0,1,2,3,6])
+datasets_helper.set_wanted_datasets([3])#[0,1,2,3,6]
 while datasets_helper.next_dataset():
     val_data_count = int(datasets_helper.get_num_of_train_texts() * val_split)
     log_writer.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
@@ -191,13 +205,13 @@ while datasets_helper.next_dataset():
         'Arguments used were: batch_size={}\nNum_of_epochs={}\ntokenizer_mode={}'.format(batch_size, epochs,tokenizer_mode))
     early_stop = EarlyStopping(monitor='val_accuracy', patience=5, restore_best_weights=True)
     text_generator = get_text_generator_class(tested_model)
-    train = TrainingTextGeneratorRNN(
+    train = text_generator(
         datasets_helper.get_train_file_path(), batch_size,
         datasets_helper.get_num_of_train_texts() - val_data_count,
         num_of_words, tokenizer, ";",
         datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
         tokenizer_mode=tokenizer_mode)
-    validation = TrainingTextGeneratorRNN(
+    validation = text_generator(
         datasets_helper.get_train_file_path(), batch_size,
         val_data_count,
         num_of_words, tokenizer, ";",
@@ -209,7 +223,7 @@ while datasets_helper.next_dataset():
         epochs=epochs,
         callbacks=[early_stop],
         validation_data=validation)
-    test = TrainingTextGeneratorRNN(
+    test = text_generator(
         datasets_helper.get_test_file_path(), batch_size,
         datasets_helper.get_num_of_test_texts(),
         num_of_words, tokenizer, ";",
@@ -222,7 +236,7 @@ while datasets_helper.next_dataset():
     # model.summary(print_fn=result.append)
     results.append(result)
     log_writer.add_log("Done. Finishing this dataset.")
-    gnr = TrainingTextGeneratorRNN(
+    gnr = text_generator(
         datasets_helper.get_test_file_path(), batch_size,
         datasets_helper.get_num_of_test_texts(),
         num_of_words, tokenizer, ";",

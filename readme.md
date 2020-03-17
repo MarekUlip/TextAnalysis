@@ -33,3 +33,6 @@ conda install -c anaconda gensim <br/>
 conda install -c conda-forge wordcloud <br/>
 conda install -c bokeh bokeh <br/>
 
+
+## Known issues
+File encountered_issues.txt contains issues encountered during my work with tensorflow. 

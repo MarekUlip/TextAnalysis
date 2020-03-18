@@ -79,11 +79,13 @@ def get_conv_model(datasets_helper, params=None):
     max_seq_len = params.get('max_seq_len',400)
 
     model = Sequential()
-    model.add(Embedding(15000, embedding_dim, input_length=max_seq_len))
+    model.add(Embedding(num_of_words, embedding_dim, input_length=max_seq_len))
     model.add(Conv1D(128, 5, activation='relu'))
     model.add(keras.layers.GlobalMaxPooling1D())
     model.add(Flatten())
+    model.add(keras.layers.GaussianNoise(0.4))
     model.add(Dense(128, activation='relu'))
+    model.add(keras.layers.LayerNormalization())
     model.add(Dense(datasets_helper.get_num_of_topics(), activation='softmax'))
     model.compile(optimizer='adam',
                   loss='categorical_crossentropy',
@@ -92,11 +94,13 @@ def get_conv_model(datasets_helper, params=None):
 
 def get_conv_gru_model(datasets_helper, params=None):
     model = Sequential()
-    model.add(Conv1D(40, 1, activation='relu',
+    model.add(Conv1D(128, 1, activation='relu',
                             input_shape=(1,num_of_words)))
     model.add(MaxPooling1D(1))
-    model.add(Conv1D(40, 1, activation='relu'))
-    model.add(GRU(40, dropout=0.1))
+    model.add(Conv1D(128, 1, activation='relu'))
+    model.add(keras.layers.GaussianNoise(0.4))
+    model.add(GRU(128))
+    model.add(keras.layers.LayerNormalization())
     model.add(Dense(datasets_helper.get_num_of_topics(),activation='softmax'))
 
     model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
@@ -182,7 +186,7 @@ def get_model_from_type(model_type, datasets_helper, params=None):
         return get_embedding_glove_model(datasets_helper, params,True)
     return Sequential()
 
-tested_model = ModelType.EMBEDDING_GLOVE_TRAINED_LSTM
+tested_model = ModelType.CONV_GRU
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 root = tk.Tk()

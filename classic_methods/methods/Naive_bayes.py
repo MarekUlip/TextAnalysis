@@ -1,5 +1,4 @@
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 
@@ -13,10 +12,10 @@ class NaiveBayes:
         else:
             self.model = MultinomialNB(alpha=params.get('alpha',0.1))
         self.articles = []
+        self.max_features = params.get('max_features',10000)
         self.tfidf = None
         self.test_start_index = 0
         self.end = 0
-        self.counts:CountVectorizer = None
 
 
     def train(self, texts_for_train, texts_for_test):
@@ -29,14 +28,12 @@ class NaiveBayes:
         topics = []
         self.test_start_index = len(texts_for_train)
         texts = texts_for_train.copy()
-        #texts.extend(texts_for_test) #TODO careful for rewrites
         for text in texts:
             self.articles.append(text[1])
             topics.append(text[0])
 
-        self.counts = CountVectorizer(max_features=10000)  #
-        self.tfidf = TfidfTransformer()
-        self.model = self.model.fit(self.tfidf.fit_transform(self.counts.fit_transform(self.articles)), topics)
+        self.tfidf = TfidfVectorizer(max_features=self.max_features)
+        self.model = self.model.fit(self.tfidf.fit_transform(self.articles), topics)
         self.end = len(self.articles)
 
     def analyse_texts(self,texts):
@@ -47,8 +44,7 @@ class NaiveBayes:
         articles = []
         for text in texts:
             articles.append(text[1])
-        counts = self.counts.transform(articles)
-        tfidf = self.tfidf.transform(counts)
+        tfidf = self.tfidf.transform(articles)
         return self.model.predict(tfidf)
 
     def get_topics(self):

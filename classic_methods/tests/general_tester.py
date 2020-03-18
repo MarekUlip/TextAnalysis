@@ -1,3 +1,4 @@
+from results_saver import LogWriter
 from .ModelType import ModelType
 from .lda_lsa_model_tester import LModelTester
 from .naive_bayes_model_tester import NBModelTester
@@ -10,8 +11,8 @@ from ..methods.Naive_bayes import NaiveBayes
 from ..methods.SVM import SupportVectorMachines
 from ..methods.Decision_tree import DecisionTree
 from ..methods.Random_forest import RandomForest
-
-
+from results_saver import plot_confusion_matrix
+import numpy as np
 
 
 class GeneralTester:
@@ -19,7 +20,7 @@ class GeneralTester:
         self.testing_docs = None
         self.training_docs = None
         self.num_of_topics = None
-        self.log_writer = log_writer
+        self.log_writer:LogWriter = log_writer
         self.start_time = start_time
         self.topic_names = None
         self.model_results = []
@@ -36,7 +37,7 @@ class GeneralTester:
         self.num_of_topics = num_of_topics
         self.topic_names = topic_names
 
-    def set_new_preprocess_docs(self, training_docs, testing_docs, preprocess_style):
+    def set_new_preprocess_docs(self, training_docs, testing_docs):
         """
         Sets new dataset documents to be tested
         :param training_docs:
@@ -45,7 +46,6 @@ class GeneralTester:
         """
         self.testing_docs = testing_docs
         self.training_docs = training_docs
-        self.preprocess_style = preprocess_style
 
     def do_test(self, model_type, num_of_tests, statistics, params, test_params, stable=False):
         """
@@ -66,21 +66,21 @@ class GeneralTester:
         statistics.append([])
         for i in range(num_of_tests):
             accuracy = self.test_model(model_type,
-                                       self.create_test_name(test_params.get("dataset_name","none"), self.start_time, model_type.name, test_params.get("preprocess_index", 0), i),
-                                       params)
+                                       test_params.get("dataset_name", "none"),
+                                       params,test_params)
             accuracies.append(accuracy)
             statistics[len(statistics) - 1].append(accuracy)
             self.log_writer.add_log("Testing {} model done with {}% accuracy".format(model_type, accuracy * 100))
             self.log_writer.add_log("\n\n")
             if stable:
-                for j in range(num_of_tests-1):
+                for j in range(num_of_tests - 1):
                     accuracies.append(accuracy)
                     statistics[len(statistics) - 1].append(accuracy)
                 break
         total_accuracy = sum(accuracies) / len(accuracies)
         self.log_writer.add_to_plot(model_type.name, accuracies)
-        self.log_writer.draw_plot(model_type.name+" "+self.preprocess_style, "\\results\\results{0}{1}\\{2}\\preprocess{3}\\graph{3}-{2}{0}{1}".format(test_params.get("dataset_name","none"), self.start_time,
-                                                                                      model_type.name, test_params.get("preprocess_index", 0)), num_of_tests)
+        self.log_writer.draw_plot(model_type.name + " " + test_params.get("dataset_name", "none"),
+                                  'model_accuracy', num_of_tests)
         self.model_results.append((model_type.name, accuracies))
         if model_type in self.preproces_results:
             self.preproces_results[model_type].append((self.preprocess_style, accuracies))
@@ -89,7 +89,7 @@ class GeneralTester:
         statistics[len(statistics) - 1].append(total_accuracy)
         self.log_writer.add_log("Total accuracy is: {}".format(total_accuracy))
 
-    def test_model(self, model_type, test_name, params):
+    def test_model(self, model_type, test_name, params, test_params):
         """
         Runs actual test on a model
         :param model_type:  ModelType enum for model that should be tested
@@ -98,6 +98,7 @@ class GeneralTester:
         :return: Accuracy of provided model
         """
         model = None
+        tester = None
         if model_type == ModelType.LDA:
             model = Lda(self.num_of_topics, params=params)
         elif model_type == ModelType.LDA_Sklearn:
@@ -106,8 +107,9 @@ class GeneralTester:
             self.log_writer.add_log("Starting training {} model".format(model_type))
             model.train(self.training_docs)  # TODO watch out for rewrites
             self.log_writer.add_log("Starting testing {} model".format(model_type))
-            tester = LModelTester(self.training_docs, self.testing_docs, self.num_of_topics, self.log_writer, self.topic_names)
-            return tester.test_model(model,test_name)
+            tester = LModelTester(self.training_docs, self.testing_docs, self.num_of_topics, self.log_writer,
+                                  self.topic_names)
+            
 
         if model_type == ModelType.LSA:
             model = Lsa(self.num_of_topics, params=params)
@@ -116,15 +118,16 @@ class GeneralTester:
             self.log_writer.add_log("Starting testing {} model".format(model_type))
             tester = LSAModelTester(self.training_docs, self.testing_docs, self.num_of_topics, self.log_writer,
                                     self.topic_names)
-            return tester.test_model(model, test_name)
+            
 
         if model_type == ModelType.NB:
             model = NaiveBayes(params)
             self.log_writer.add_log("Starting training {} model".format(model_type))
-            model.train(self.training_docs,self.testing_docs)
+            model.train(self.training_docs, self.testing_docs)
             self.log_writer.add_log("Starting testing {} model".format(model_type))
-            tester = NBModelTester(self.training_docs, self.testing_docs, self.num_of_topics, self.log_writer, self.topic_names)
-            return tester.test_model(model,test_name)
+            tester = NBModelTester(self.training_docs, self.testing_docs, self.num_of_topics, self.log_writer,
+                                   self.topic_names)
+            
 
         if model_type == ModelType.SVM or model_type == ModelType.DT or model_type == ModelType.RF:
             if model_type == ModelType.SVM:
@@ -137,8 +140,16 @@ class GeneralTester:
             model.train(self.training_docs)
             self.log_writer.add_log("Starting testing {} model".format(model_type))
             tester = SVMModelTester(self.training_docs, self.testing_docs, self.num_of_topics, self.log_writer,
-                                   self.topic_names)
-            return tester.test_model(model, test_name)
+                                    self.topic_names)
+        accuracy = tester.test_model(model,test_name)
+        cm:np.ndarray = np.array(tester.confusion_matrix)
+        cm = cm[1:,1:]
+        cm = cm.transpose()
+        cm = cm.astype(np.uint8)
+        dataset_helper = test_params.get('dataset_helper',None)
+        plot_confusion_matrix(cm,dataset_helper.get_num_of_topics(),dataset_helper.get_dataset_name(),self.log_writer)
+        return accuracy
+            
 
     def create_test_name(self, dataset_name, start_time, model_name, preprocess_index, test_num):
         """
@@ -151,25 +162,7 @@ class GeneralTester:
         :return: path to test folder
         """
         return "\\results\\results{}{}\\{}\\preprocess{}\\test_num{}".format(dataset_name, start_time, model_name,
-                                                                      preprocess_index, test_num)
+                                                                             preprocess_index, test_num)
 
-    def output_model_comparison(self, dset_name):
-        """
-        Creates png chart that shows accuracy comparision of all tested model based on current preprocessing.
-        """
-        for result in self.model_results:
-            self.log_writer.add_to_plot(result[0], result[1])
-        self.log_writer.draw_plot("Porovnaní modelů", "\\results\\charts\\{}\\{}{}model-compare".format(self.start_time, self.preprocess_style[:2], dset_name), self.num_of_tests)
-        self.model_results.clear()
 
-    def output_preprocess_comparison(self, dset_name):
-        """
-        Creates png chart that shows accuracy impacts to model accuracy with different preprocessing settings
-        :param dset_name: Name of actual dataset
-        :return:
-        """
-        for key, value in self.preproces_results.items():
-            for result in value:
-                self.log_writer.add_to_plot(result[0], result[1])
-            self.log_writer.draw_plot("Vliv preprocessingu na přesnost","\\results\\charts\\{}\\{}{}preprocess-compare".format(self.start_time, dset_name,key.name), self.num_of_tests)
-        self.preproces_results.clear()
+

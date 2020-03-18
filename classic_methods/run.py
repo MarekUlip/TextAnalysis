@@ -2,15 +2,12 @@ import os
 import sys
 import time
 from dataset_loader.dataset_helper import Dataset_Helper, DatasetType
-from .tests.ModelType import ModelType
-from .tests.general_tester import GeneralTester
+from classic_methods.tests.ModelType import ModelType
+from classic_methods.tests.general_tester import GeneralTester
 from results_saver import LogWriter
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
-
-
-
 
 def create_variations(depth, field, all_vars, possibilities):
     if depth == len(all_vars):
@@ -27,44 +24,22 @@ def get_time_in_millis():
     return int(round(time.time()) * 1000)
 
 
-log_writer = LogWriter("log.txt",'Classic')
+log_writer = LogWriter(result_desc='Classic')
 
 strip_nums_params = use_stemmer_params = use_lemmatizer_params = strip_short_params = remove_stop_words = [True, False]
 preproces_all_vals = [strip_nums_params, use_stemmer_params, use_lemmatizer_params, strip_short_params, remove_stop_words]
-preproces_variations = [[False,False,True,True,True],[False,True,False,True,True],[False,True,True,True,True]]
-#preproces_variations = [[False,False,False,False], [True,True,False,True], [True,False,True,False]]  # [[False,False,False,False]]#[[True,True,True,True],[False,False,False,False],[True,False,True,False],[True,False,True,True]]
-#preproces_variations = []
-#create_variations(0, [], preproces_all_vals, preproces_variations)
-
-lda_kappa = [0.51]
-lda_tau = [2.0]
-lda_minimum_probability = [0.0, 0.01, 0.1]
-lda_passes = [50]
-lda_iterations = [50]
-lda_all_vals = [lda_kappa, lda_tau, lda_passes, lda_iterations]
-# lda_variations = []
-# create_variations(0,[],lda_all_vals,lda_variations)
-
-lsa_one_pass = [False]
-lsa_power_iter = [2]
-lsa_use_tfidf = [True]
-#lsa_topic_nums = [data_sets[0][1]]
-lsa_extra_samples = [100, 200]
-lsa_decay = [0.5, 1.0, 2.0]
-#lsa_all_vals = [lsa_one_pass, lsa_power_iter, lsa_use_tfidf, lsa_topic_nums]
-# lsa_variations = []
-# create_variations(0,[],lsa_all_vals,lsa_variations)
+preproces_variations = [[False,False,True,True,True]]
 
 hdp_variations = []
 num_of_tests = 1
 
-test_model = {ModelType.LDA: True,
-              ModelType.LSA: True,
-              ModelType.LDA_Sklearn: True,
+test_model = {ModelType.LDA: False,
+              ModelType.LSA: False,
+              ModelType.LDA_Sklearn: False,
               ModelType.NB: True,
-              ModelType.SVM: True,
-              ModelType.DT: True,
-              ModelType.RF: True
+              ModelType.SVM: False,
+              ModelType.DT: False,
+              ModelType.RF: False
               }
 is_stable = {ModelType.LDA: False,
               ModelType.LSA: True,
@@ -79,11 +54,11 @@ start_time = get_time_in_millis()
 models_for_test = test_model.keys()#[ModelType.LDA, ModelType.LSA, ModelType.NB, ModelType.LDA_Sklearn, ModelType.SVM, ModelType.RF, ModelType.DT]
 
 tester = GeneralTester(log_writer, start_time)
-datasets_helper = Dataset_Helper(preprocess=False)
-datasets_helper.set_wanted_datasets([12])
+datasets_helper = Dataset_Helper(preprocess=True)
+datasets_helper.set_wanted_datasets([3])
 #array to iterate should contain valid indexes (ranging from 0 to length of data_sets) of datasets that are present in list data_sets
 while datasets_helper.next_dataset():#range(len(data_sets)):
-    topic_names = datasets_helper.get_dataset_topic_names()#TextPreprocessor.load_csv([datasets_helper.get_dataset_folder_path() + "\\topic-names.csv"])
+    topic_names = [(index, item) for index, item in enumerate(datasets_helper.get_dataset_topic_names())]#TextPreprocessor.load_csv([datasets_helper.get_dataset_folder_path() + "\\topic-names.csv"])
     tester.set_new_dataset(datasets_helper.get_num_of_topics(), topic_names)
     statistics_to_merge = []
     models_params = {
@@ -163,7 +138,7 @@ while datasets_helper.next_dataset():#range(len(data_sets)):
                                                                                              preproces_settings[4])
         statistics.append([preprocess_style])
         tester.set_new_preprocess_docs(texts_for_train, texts_for_testing, preprocess_style)
-        test_params = {"preprocess_index": preprocess_index, "dataset_name": datasets_helper.get_dataset_name()}
+        test_params = {"preprocess_index": preprocess_index, "dataset_name": datasets_helper.get_dataset_name(), 'dataset_helper': datasets_helper}
         for m_index, model in enumerate(models_for_test):
             if test_model[model]:
                 # For every preprocesing add line that descripbes methods used

@@ -62,7 +62,7 @@ class SVMModelTester:
         #self.log_writer.add_log("Article with topic {} was assigned {} with {} certainty.".format(article[0], "correctly" if res[0] == self.topic_positions[article[0]] else "wrong", res[1]))
 
         self.add_descriptions_to_confusion_matrix()
-        self.log_writer.write_2D_list(test_name+"-confusion-matrix", self.confusion_matrix)
+        self.log_writer.write_2D_list(test_name+"\\confusion-matrix", self.confusion_matrix)
         return sum(stats)/len(stats)
 
 

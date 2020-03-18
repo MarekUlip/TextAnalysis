@@ -128,6 +128,27 @@ class LogWriter:
         self.path += desc
 
 
+def plot_confusion_matrix(cm,num_of_classes,dataset_name='',log_writer:LogWriter=None,path=None):
+    if log_writer is None and path is None:
+        raise ValueError('log_writer and path both None. At least one of this variables has to be set')
+    if path is None:
+        path = log_writer.get_plot_path(dataset_name, 'confusion_matrix')
+    # print(cm)
+    fig = plt.figure(figsize=(num_of_classes, num_of_classes))
+    ax = fig.add_subplot(111)
+    cax = ax.matshow(cm)
+    for (i, j), z in np.ndenumerate(cm):
+        ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
+        # bbox=dict(boxstyle='round', facecolor='white', edgecolor='0.3'))
+    plt.title('Confusion matrix of the classifier')
+    fig.colorbar(cax)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    """topic_names = datasets_helper.get_dataset_topic_names()
+    ax.set_xticklabels([''] + topic_names)
+    ax.set_yticklabels([''] + topic_names)"""
+    plt.savefig(path)
+    plt.clf()
 
 
 def finish_dataset(model, gnr, dataset_helper: Dataset_Helper, log_writer: LogWriter, history):
@@ -159,7 +180,8 @@ def finish_dataset(model, gnr, dataset_helper: Dataset_Helper, log_writer: LogWr
 
         cm = confusion_matrix(labels, predicts)
         #print(cm)
-        fig = plt.figure(figsize=(dataset_helper.get_num_of_topics(), dataset_helper.get_num_of_topics()))
+        plot_confusion_matrix(cm,dataset_helper.get_num_of_topics(),dataset_helper.get_dataset_name(),log_writer)
+        """fig = plt.figure(figsize=(dataset_helper.get_num_of_topics(), dataset_helper.get_num_of_topics()))
         ax = fig.add_subplot(111)
         cax = ax.matshow(cm)
         for (i, j), z in np.ndenumerate(cm):
@@ -169,11 +191,8 @@ def finish_dataset(model, gnr, dataset_helper: Dataset_Helper, log_writer: LogWr
         fig.colorbar(cax)
         plt.xlabel('Predicted')
         plt.ylabel('True')
-        """topic_names = datasets_helper.get_dataset_topic_names()
-        ax.set_xticklabels([''] + topic_names)
-        ax.set_yticklabels([''] + topic_names)"""
         plt.savefig(log_writer.get_plot_path(dataset_helper.get_dataset_name(), 'confusion_matrix'))
-        plt.clf()
+        plt.clf()"""
 
     acc = history.history['accuracy']
     val_acc = history.history['val_accuracy']

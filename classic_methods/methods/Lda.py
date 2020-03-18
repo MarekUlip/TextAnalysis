@@ -42,7 +42,6 @@ class Lda:
         """
         texts = [text[1].split() for text in texts]
         self.dictionary = corpora.Dictionary(texts)
-        # TODO maybe test work with dict self.dictionary.filter_extremes(no_below=2, no_above=0.5, keep_n=100000)
         doc_term_matrix = [self.dictionary.doc2bow(doc) for doc in texts]
         self.model = gensim.models.LdaModel(
             doc_term_matrix,

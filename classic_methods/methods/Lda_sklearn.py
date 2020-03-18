@@ -1,5 +1,5 @@
 import os
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.decomposition import LatentDirichletAllocation
 from sklearn.datasets import fetch_20newsgroups
 import numpy as np
@@ -15,7 +15,8 @@ class LdaSklearn:
             self.passes = passes
             self.iterations = iterations
         self.model = None
-        self.tf_vectorizer = CountVectorizer(max_df=0.95, stop_words='english')
+        self.max_features = params.get('max_features',10000)
+        self.tf_vectorizer = TfidfVectorizer(max_features=self.max_features)
         #paths in case this model would be saved
         self.model_folder = os.getcwd()+"\\lda-sklearn\\"
         self.model_path = self.model_folder+"model"

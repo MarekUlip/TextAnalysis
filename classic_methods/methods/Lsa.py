@@ -38,7 +38,7 @@ class Lsa:
     def train(self, texts_in):
         """
         Trains this model with provided texts
-        :param texts: list of tuples in form (topic_id, text) topic ids dont matter here this format is used only because
+        :param texts_in: list of tuples in form (topic_id, text) topic ids dont matter here this format is used only because
         its more general - easier testing
         """
         texts = []

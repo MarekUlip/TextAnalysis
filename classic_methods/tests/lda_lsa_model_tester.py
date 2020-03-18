@@ -120,8 +120,8 @@ class LModelTester:
 
         self.log_writer.write_2D_list(test_name, statistics)
         self.add_descriptions_to_confusion_matrix()
-        self.log_writer.write_2D_list(test_name+"-confusion-matrix", self.confusion_matrix)
-        self.log_writer.write_2D_list(test_name+"-confusion-matrix-true", self.confusion_matrix_true)
+        self.log_writer.write_2D_list(test_name+"\\confusion-matrix", self.confusion_matrix)
+        self.log_writer.write_2D_list(test_name+"\\confusion-matrix-true", self.confusion_matrix_true)
         return sum(stats)/len(stats)
 
     def connect_topic_id_to_topics(self, model):

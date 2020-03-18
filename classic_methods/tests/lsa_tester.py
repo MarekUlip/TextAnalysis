@@ -54,5 +54,5 @@ class LSAModelTester:
             topic_number_index = self.topic_numbers.index(text[0])
             self.confusion_matrix[guessed_topic_number_index][topic_number_index] += 1
         self.add_descriptions_to_confusion_matrix()
-        self.log_writer.write_2D_list(test_name+"-confusion-matrix", self.confusion_matrix)
+        self.log_writer.write_2D_list(test_name+"\\confusion-matrix", self.confusion_matrix)
         return sum(stats)/len(stats)

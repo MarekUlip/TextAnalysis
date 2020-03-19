@@ -80,7 +80,7 @@ class GeneralTester:
         total_accuracy = sum(accuracies) / len(accuracies)
         self.log_writer.add_to_plot(model_type.name, accuracies)
         self.log_writer.draw_plot(model_type.name + " " + test_params.get("dataset_name", "none"),
-                                  'model_accuracy', num_of_tests)
+                                  '{}_model_accuracy'.format(test_params.get("dataset_name", "none")), num_of_tests)
         self.model_results.append((model_type.name, accuracies))
         if model_type in self.preproces_results:
             self.preproces_results[model_type].append((self.preprocess_style, accuracies))

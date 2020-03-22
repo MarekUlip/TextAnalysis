@@ -145,7 +145,7 @@ class GeneralTester:
         cm:np.ndarray = np.array(tester.confusion_matrix)
         cm = cm[1:,1:]
         cm = cm.transpose()
-        cm = cm.astype(np.uint8)
+        cm = cm.astype(np.uint32)
         dataset_helper = test_params.get('dataset_helper',None)
         plot_confusion_matrix(cm,dataset_helper.get_num_of_topics(),dataset_helper.get_dataset_name(),self.log_writer)
         return accuracy

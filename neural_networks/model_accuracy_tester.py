@@ -186,7 +186,7 @@ def get_model_from_type(model_type, datasets_helper, params=None):
         return get_embedding_glove_model(datasets_helper, params,True)
     return Sequential()
 
-tested_model = ModelType.CONV_GRU
+tested_model = ModelType.LSTM
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 root = tk.Tk()
@@ -203,10 +203,10 @@ epochs = 50
 val_split = 0.2
 max_seq_len = 400
 embedding_dim = 200
-tokenizer_mode = 'tfidf'
+tokenizer_mode = 'binary'
 
 
-datasets_helper.set_wanted_datasets([3])#[0,1,2,3,6]
+datasets_helper.set_wanted_datasets([9,14])
 while datasets_helper.next_dataset():
     val_data_count = int(datasets_helper.get_num_of_train_texts() * val_split)
     log_writer.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))

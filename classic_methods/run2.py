@@ -24,7 +24,7 @@ def create_variations(depth, field, all_vars, possibilities):
 def get_time_in_millis():
     return int(round(time.time()) * 1000)
 
-num_of_tests = 1
+num_of_tests = 4
 
 test_model = {ModelType.LDA: True,
               ModelType.LSA: True,
@@ -92,8 +92,8 @@ for model in models_for_test:
         continue
     log_writer = LogWriter(log_file_desc='_{}_{}'.format('prep' if preprocess else 'no-prep',model.name),result_desc='Classic')
     tester = GeneralTester(log_writer, start_time)
-    datasets_helper = Dataset_Helper(preprocess=True)
-    datasets_helper.set_wanted_datasets([0,2,3])
+    datasets_helper = Dataset_Helper(preprocess=preprocess)
+    datasets_helper.set_wanted_datasets([0,1,2,3,6])
     while datasets_helper.next_dataset():
         if 'topic_count' in models_params[model]:
             models_params[model]['topic_count'] = datasets_helper.get_num_of_topics()

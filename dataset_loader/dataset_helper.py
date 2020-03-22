@@ -4,10 +4,11 @@ import csv
 from enum import Enum
 from itertools import islice
 from pathlib import Path
-from . import params
+from . import params, czech_lemmatizer
 from gensim.parsing import preprocessing
 
 from dataset_loader import czech_stemmer
+
 
 def get_root_folder():
     path = Path(os.getcwd())
@@ -31,12 +32,15 @@ while True:
     except OverflowError:
         maxInt = int(maxInt/10)
 csv.field_size_limit(maxInt)
+
+#czech_lemmatizer.init_lemmatizer(get_root_folder())
+
 # list created with txt that was from GitHub repository https://github.com/stopwords-iso/stopwords-cs under MIT license https://github.com/stopwords-iso/stopwords-cs/blob/master/LICENSE
 cz_stopwords = ['a', 'aby', 'ahoj', 'aj', 'ale', 'anebo', 'ani', 'aniž', 'ano', 'asi', 'aspoåˆ', 'aspoň', 'atd', 'atp', 'az', 'aä\x8dkoli', 'ačkoli', 'až', 'bez', 'beze', 'blã\xadzko', 'blízko', 'bohuå¾el', 'bohužel', 'brzo', 'bude', 'budem', 'budeme', 'budes', 'budete', 'budeå¡', 'budeš', 'budou', 'budu', 'by', 'byl', 'byla', 'byli', 'bylo', 'byly', 'bys', 'byt', 'bä›hem', 'být', 'během', 'chce', 'chceme', 'chcete', 'chceå¡', 'chceš', 'chci', 'chtã\xadt', 'chtä›jã\xad', 'chtít', 'chtějí', "chut'", 'chuti', 'ci', 'clanek', 'clanku', 'clanky', 'co', 'coz', 'což', 'cz', 'daleko', 'dalsi', 'další', 'den', 'deset', 'design', 'devatenáct', 'devatenã¡ct', 'devä›t', 'devět', 'dnes', 'do', 'dobrã½', 'dobrý', 'docela', 'dva', 'dvacet', 'dvanáct', 'dvanã¡ct', 'dvä›', 'dvě', 'dál', 'dále', 'dã¡l', 'dã¡le', 'dä›kovat', 'dä›kujeme', 'dä›kuji', 'děkovat', 'děkujeme', 'děkuji', 'email', 'ho', 'hodnä›', 'hodně', 'i', 'jak', 'jakmile', 'jako', 'jakož', 'jde', 'je', 'jeden', 'jedenáct', 'jedenã¡ct', 'jedna', 'jedno', 'jednou', 'jedou', 'jeho', 'jehož', 'jej', 'jeji', 'jejich', 'jejã\xad', 'její', 'jelikož', 'jemu', 'jen', 'jenom', 'jenž', 'jeste', 'jestli', 'jestliå¾e', 'jestliže', 'jeå¡tä›', 'ještě', 'jež', 'ji', 'jich', 'jimi', 'jinak', 'jine', 'jiné', 'jiz', 'již', 'jsem', 'jses', 'jseš', 'jsi', 'jsme', 'jsou', 'jste', 'já', 'jã¡', 'jã\xad', 'jã\xadm', 'jí', 'jím', 'jíž', 'jšte', 'k', 'kam', 'každý', 'kde', 'kdo', 'kdy', 'kdyz', 'kdyå¾', 'když', 'ke', 'kolik', 'kromä›', 'kromě', 'ktera', 'ktere', 'kteri', 'kterou', 'ktery', 'která', 'kterã¡', 'kterã©', 'kterã½', 'které', 'který', 'kteå™ã\xad', 'kteři', 'kteří', 'ku', 'kvå¯li', 'kvůli', 'ma', 'majã\xad', 'mají', 'mate', 'me', 'mezi', 'mi', 'mit', 'mne', 'mnou', 'mnä›', 'mně', 'moc', 'mohl', 'mohou', 'moje', 'moji', 'moå¾nã¡', 'možná', 'muj', 'musã\xad', 'musí', 'muze', 'my', 'má', 'málo', 'mám', 'máme', 'máte', 'máš', 'mã¡', 'mã¡lo', 'mã¡m', 'mã¡me', 'mã¡te', 'mã¡å¡', 'mã©', 'mã\xad', 'mã\xadt', 'mä›', 'må¯j', 'må¯å¾e', 'mé', 'mí', 'mít', 'mě', 'můj', 'může', 'na', 'nad', 'nade', 'nam', 'napiste', 'napište', 'naproti', 'nas', 'nasi', 'naå¡e', 'naå¡i', 'načež', 'naše', 'naši', 'ne', 'nebo', 'nebyl', 'nebyla', 'nebyli', 'nebyly', 'nechť', 'nedä›lajã\xad', 'nedä›lã¡', 'nedä›lã¡m', 'nedä›lã¡me', 'nedä›lã¡te', 'nedä›lã¡å¡', 'nedělají', 'nedělá', 'nedělám', 'neděláme', 'neděláte', 'neděláš', 'neg', 'nejsi', 'nejsou', 'nemajã\xad', 'nemají', 'nemáme', 'nemáte', 'nemã¡me', 'nemã¡te', 'nemä›l', 'neměl', 'neni', 'nenã\xad', 'není', 'nestaä\x8dã\xad', 'nestačí', 'nevadã\xad', 'nevadí', 'nez', 'neå¾', 'než', 'nic', 'nich', 'nimi', 'nove', 'novy', 'nové', 'nový', 'nula', 'ná', 'nám', 'námi', 'nás', 'náš', 'nã¡m', 'nã¡mi', 'nã¡s', 'nã¡å¡', 'nã\xadm', 'nä›', 'nä›co', 'nä›jak', 'nä›kde', 'nä›kdo', 'nä›mu', 'ní', 'ním', 'ně', 'něco', 'nějak', 'někde', 'někdo', 'němu', 'němuž', 'o', 'od', 'ode', 'on', 'ona', 'oni', 'ono', 'ony', 'osm', 'osmnáct', 'osmnã¡ct', 'pak', 'patnáct', 'patnã¡ct', 'po', 'pod', 'podle', 'pokud', 'potom', 'pouze', 'pozdä›', 'pozdě', 'poå™ã¡d', 'pořád', 'prave', 'pravé', 'pred', 'pres', 'pri', 'pro', 'proc', 'prostä›', 'prostě', 'prosã\xadm', 'prosím', 'proti', 'proto', 'protoze', 'protoå¾e', 'protože', 'proä\x8d', 'proč', 'prvni', 'první', 'práve', 'pta', 'pä›t', 'på™ed', 'på™es', 'på™ese', 'pět', 'před', 'přede', 'přes', 'přese', 'při', 'přičemž', 're', 'rovnä›', 'rovně', 's', 'se', 'sedm', 'sedmnáct', 'sedmnã¡ct', 'si', 'sice', 'skoro', 'smã\xad', 'smä›jã\xad', 'smí', 'smějí', 'snad', 'spolu', 'sta', 'sto', 'strana', 'stã©', 'sté', 'sve', 'svych', 'svym', 'svymi', 'své', 'svých', 'svým', 'svými', 'svůj', 'ta', 'tady', 'tak', 'take', 'takhle', 'taky', 'takze', 'také', 'takže', 'tam', 'tamhle', 'tamhleto', 'tamto', 'tato', 'te', 'tebe', 'tebou', "ted'", 'tedy', 'tema', 'ten', 'tento', 'teto', 'ti', 'tim', 'timto', 'tipy', 'tisã\xadc', 'tisã\xadce', 'tisíc', 'tisíce', 'to', 'tobä›', 'tobě', 'tohle', 'toho', 'tohoto', 'tom', 'tomto', 'tomu', 'tomuto', 'toto', 'troå¡ku', 'trošku', 'tu', 'tuto', 'tvoje', 'tvá', 'tvã¡', 'tvã©', 'två¯j', 'tvé', 'tvůj', 'ty', 'tyto', 'tä›', 'tå™eba', 'tå™i', 'tå™inã¡ct', 'téma', 'této', 'tím', 'tímto', 'tě', 'těm', 'těma', 'těmu', 'třeba', 'tři', 'třináct', 'u', 'urä\x8ditä›', 'určitě', 'uz', 'uå¾', 'už', 'v', 'vam', 'vas', 'vase', 'vaå¡e', 'vaå¡i', 'vaše', 'vaši', 've', 'vedle', 'veä\x8der', 'večer', 'vice', 'vlastnä›', 'vlastně', 'vsak', 'vy', 'vám', 'vámi', 'vás', 'váš', 'vã¡m', 'vã¡mi', 'vã¡s', 'vã¡å¡', 'vå¡echno', 'vå¡ichni', 'vå¯bec', 'vå¾dy', 'více', 'však', 'všechen', 'všechno', 'všichni', 'vůbec', 'vždy', 'z', 'za', 'zatã\xadmco', 'zatímco', 'zaä\x8d', 'zač', 'zda', 'zde', 'ze', 'zpet', 'zpravy', 'zprávy', 'zpět', 'ä\x8dau', 'ä\x8dtrnã¡ct', 'ä\x8dtyå™i', 'å¡est', 'å¡estnã¡ct', 'å¾e', 'čau', 'či', 'článek', 'článku', 'články', 'čtrnáct', 'čtyři', 'šest', 'šestnáct', 'že']
 stp_wrds = ['a', 'able', 'about', 'across', 'after', 'all', 'almost', 'also', 'am', 'among', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'because', 'been', 'but', 'by', 'can', 'cannot', 'could', 'dear', 'did', 'do', 'does', 'either', 'else', 'ever', 'every', 'for', 'from', 'get', 'got', 'had', 'has', 'have', 'he', 'her', 'hers', 'him', 'his', 'how', 'however', 'i', 'if', 'in', 'into', 'is', 'it', 'its', 'just', 'least', 'let', 'like', 'likely', 'may', 'me', 'might', 'most', 'must', 'my', 'neither', 'no', 'nor', 'not', 'of', 'off', 'often', 'on', 'only', 'or', 'other', 'our', 'own', 'rather', 'said', 'say', 'says', 'she', 'should', 'since', 'so', 'some', 'than', 'that', 'the', 'their', 'them', 'then', 'there', 'these', 'they', 'this', 'tis', 'to', 'too', 'twas', 'us', 'wants', 'was', 'we', 'were', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'will', 'with', 'would', 'yet', 'you', 'your']
 base_path = get_root_folder()#os.getcwd()
 dataset_folder = base_path + "\\datasets\\"
-
+root_folder = get_root_folder()
 train_file_name = "new-train"
 test_file_name = "new-test"
 skippable_datasets = [0,1,3,4,5,6,7,8,9]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,5,6,7,8]#[1,4,5,6,7]#[1,4,5]#
@@ -68,8 +72,8 @@ def preprocess_sentence_cz(sentence):
     sentence = " ".join(preprocessing.preprocess_string(sentence, [preprocessing.strip_multiple_whitespaces,
                                                                    preprocessing.strip_numeric,
                                                                    preprocessing.strip_short]))
-    #sentence = " ".join([czech_lemmatizer.lemmatize(word) for word in sentence.split()])
-    sentence = " ".join([czech_stemmer.cz_stem(word) for word in sentence.split()])
+    sentence = " ".join([czech_lemmatizer.lemmatize(word, root_folder) for word in sentence.split()])
+    #sentence = " ".join([czech_stemmer.cz_stem(word) for word in sentence.split()])
 
     return sentence
 

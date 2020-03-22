@@ -4,7 +4,8 @@ import csv
 from enum import Enum
 from itertools import islice
 from pathlib import Path
-from . import params, czech_lemmatizer
+from . import params
+from .czech_lemmatizer import CzechLemmatizer
 from gensim.parsing import preprocessing
 
 from dataset_loader import czech_stemmer
@@ -72,7 +73,7 @@ def preprocess_sentence_cz(sentence):
     sentence = " ".join(preprocessing.preprocess_string(sentence, [preprocessing.strip_multiple_whitespaces,
                                                                    preprocessing.strip_numeric,
                                                                    preprocessing.strip_short]))
-    sentence = " ".join([czech_lemmatizer.lemmatize(word, root_folder) for word in sentence.split()])
+    #sentence = " ".join([czech_lemmatizer.lemmatize(word, root_folder) for word in sentence.split()])
     #sentence = " ".join([czech_stemmer.cz_stem(word) for word in sentence.split()])
 
     return sentence
@@ -88,6 +89,7 @@ class Dataset_Helper():
         self.vectorized_labels = False
         self.preprocess_func = preprocess_sentence
         self.wanted_datasets = range(len(self.dataset_info)) #:list of dataset indexes to be analysed. Defaultly all indexes from file info.csv will be analysed
+        self.cz_lemmatizer = CzechLemmatizer(get_root_folder())
 
     def load_dataset_info(self):
         with open(dataset_folder+"info.csv",encoding="utf-8", errors="ignore") as settings_file:
@@ -97,7 +99,7 @@ class Dataset_Helper():
 
     def set_preprocess_function(self,lang):
         if lang == 'cz':
-            self.preprocess_func = preprocess_sentence_cz
+            self.preprocess_func = self.preprocess_sentence_cz
         elif lang == 'eng':
             self.preprocess_func = preprocess_sentence_eng
 
@@ -230,6 +232,14 @@ class Dataset_Helper():
                     labels.append(int(s[0]))
         return labels
 
+    def preprocess_sentence_cz(self, sentence):
+        sentence = sentence.lower()
+        sentence = " ".join(word for word in sentence.split() if word not in cz_stopwords)
+        sentence = " ".join(preprocessing.preprocess_string(sentence, [preprocessing.strip_multiple_whitespaces,
+                                                                       preprocessing.strip_numeric,
+                                                                       preprocessing.strip_short]))
+        sentence = " ".join([self.cz_lemmatizer.lemmatize(word, root_folder) for word in sentence.split()])
+        return sentence
 
 
     def text_generator(self, csv_file_stream=None):
@@ -239,20 +249,5 @@ class Dataset_Helper():
             # print("getting item based on {}".format(item))
             if self.preprocess:
                 yield self.preprocess_func(s[1])
-            else:
-                yield s[1]
-
-    def text_generator_b(self, csv_file_stream = None):
-        if csv_file_stream is None:
-            csv_file_stream = self.csv_train_file_stream
-        for text in csv_file_stream:
-            if text == "":
-                break
-            s = text.split(";")
-            if len(s) <= 1:
-                print('uups')
-                continue
-            if self.preprocess:
-                yield preprocess_sentence(s[1])
             else:
                 yield s[1]

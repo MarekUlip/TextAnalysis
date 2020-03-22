@@ -93,7 +93,7 @@ for model in models_for_test:
     log_writer = LogWriter(log_file_desc='_{}_{}'.format('prep' if preprocess else 'no-prep',model.name),result_desc='Classic')
     tester = GeneralTester(log_writer, start_time)
     datasets_helper = Dataset_Helper(preprocess=preprocess)
-    datasets_helper.set_wanted_datasets([0,1,2,3,6])
+    datasets_helper.set_wanted_datasets([13])
     while datasets_helper.next_dataset():
         if 'topic_count' in models_params[model]:
             models_params[model]['topic_count'] = datasets_helper.get_num_of_topics()

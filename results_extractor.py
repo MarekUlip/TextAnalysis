@@ -20,9 +20,9 @@ class NeuralType(Enum):
     LSTM = 1
 
 class ClassicType(Enum):
+    LDA_Sklearn = 2
     LDA = 0
     LSA = 1
-    LDA_Sklearn = 2
     NB = 3
     SVM = 4
     DT = 5
@@ -48,6 +48,60 @@ def get_root_folder():
     path = Path(os.getcwd())
 
     return str(path)
+
+def process_classic_results():
+    names = build_names('classic')
+    directory = filedialog.askdirectory()
+    dataset_results = {}
+    for file in os.listdir(directory):
+        print(os.getcwd())
+        try:
+            filename = os.fsdecode(file)
+            if 'no-prep' in filename:
+                preprocess = 'no-prep'
+            else:
+                preprocess = 'prep'
+            model_name = ''
+            for name in names:
+                if name in filename:
+                    model_name = name
+                    break
+            results = []
+            with open(directory + '/' + filename + '/stats.csv', 'r', encoding='utf8') as stats:
+                csv_reader = csv.reader(stats)
+                is_results = False
+                is_dataset_name = False
+                result = []
+                for line in csv_reader:
+                    print(line)
+                    last_index = len(line) - 1
+                    if last_index<0:
+                        continue
+
+                    if is_dataset_name:
+                        result.append(line[0])
+                        is_dataset_name = False
+                        results.append(result)
+                        result = []
+                    if is_results:
+                        result.append(float(line[last_index]))
+                        is_results = False
+                        is_dataset_name = True
+                    if line[last_index] == 'Average':
+                        is_results = True
+            prep_method_name = preprocess
+            for result in results:
+                if result[1] not in dataset_results:
+                    dataset_results[result[1]] = pd.DataFrame(index=names,
+                                                              columns=['prep',
+                                                                       'no-prep'])
+                dataset_results[result[1]][prep_method_name][model_name] = result[0]
+        except Exception as e:
+            #warnings.warn(e)
+            continue
+    for key, value in dataset_results.items():
+        Path(os.getcwd() + '/compiled-results').mkdir(parents=True, exist_ok=True)
+        value.to_csv(os.getcwd() + '/compiled-results/classic-{}-results.csv'.format(key))
 
 def process_neural_results():
     names = build_names('neural')
@@ -81,17 +135,18 @@ def process_neural_results():
             for result in results:
                 if result[1] not in dataset_results:
                     dataset_results[result[1]] = pd.DataFrame(index=names,columns=['binary-prep','binary-no-prep','tfidf-prep','tfidf-no-prep'])
-                print(dataset_results[result[1]])
+                #print(dataset_results[result[1]])
                 dataset_results[result[1]][prep_method_name][model_name] = result[0]
-            print(dataset_results)
+            #print(dataset_results)
         except Exception as e:
-            warnings.warn(e)
+            #warnings.warn(e)
             continue
     for key, value in dataset_results.items():
         Path(os.getcwd()+'/compiled-results').mkdir(parents=True, exist_ok=True)
         value.to_csv(os.getcwd()+'/compiled-results/{}-results.csv'.format(key))
 
-process_neural_results()
+#process_neural_results()
+process_classic_results()
 
 
 

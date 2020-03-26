@@ -238,7 +238,7 @@ class Dataset_Helper():
         sentence = " ".join(preprocessing.preprocess_string(sentence, [preprocessing.strip_multiple_whitespaces,
                                                                        preprocessing.strip_numeric,
                                                                        preprocessing.strip_short]))
-        sentence = " ".join([self.cz_lemmatizer.lemmatize(word, root_folder) for word in sentence.split()])
+        sentence = " ".join([self.cz_lemmatizer.lemmatize(word) for word in sentence.split()])
         return sentence
 
 

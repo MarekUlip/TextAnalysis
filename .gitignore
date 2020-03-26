@@ -69,6 +69,7 @@ fabric.properties
 
 /datasets
 /results
+/compiled-results
 /thrash
 /embeddings
 /tensorBoard

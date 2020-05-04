@@ -145,8 +145,8 @@ def process_neural_results():
         Path(os.getcwd()+'/compiled-results').mkdir(parents=True, exist_ok=True)
         value.to_csv(os.getcwd()+'/compiled-results/{}-results.csv'.format(key))
 
-#process_neural_results()
-process_classic_results()
+process_neural_results()
+#process_classic_results()
 
 
 

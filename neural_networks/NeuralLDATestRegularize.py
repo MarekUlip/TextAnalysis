@@ -29,7 +29,7 @@ results = []
 from sys import getsizeof
 num_of_words = 10000
 dataset_helper = Dataset_Helper(True)
-dataset_helper.set_wanted_datasets([1])
+dataset_helper.set_wanted_datasets([2])
 dataset_helper.next_dataset()
 num_of_topics = dataset_helper.get_num_of_topics()
 documents = dataset_helper.get_texts_as_list()

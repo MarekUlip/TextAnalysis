@@ -26,7 +26,7 @@ class ModelType(Enum):
 def get_LSTM_model(datasets_helper, params=None):
     model: Sequential = Sequential()
     model.add(LSTM(128, input_shape=(1, num_of_words), return_sequences=True))
-    model.add(keras.layers.GaussianNoise(0.6))
+    model.add(keras.layers.GaussianNoise(0.3))
     model.add(LSTM(128, return_sequences=True, kernel_regularizer=keras.regularizers.l2(0.01)))
     model.add(keras.layers.LayerNormalization())
     model.add(Dropout(0.3))
@@ -186,16 +186,16 @@ def get_model_from_type(model_type, datasets_helper, params=None):
         return get_embedding_glove_model(datasets_helper, params,True)
     return Sequential()
 
-tested_model = ModelType.RNN
+tested_model = ModelType.LSTM
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 root = tk.Tk()
 root.withdraw()
 
-preprocess = False
+preprocess = True
 datasets_helper = Dataset_Helper(preprocess)
 log_writer = LogWriter(log_file_desc=simpledialog.askstring(title="Test Name",
-                                                            prompt="Insert test name:", initialvalue='{}_{}'.format(tested_model.name,'prep_' if preprocess else 'no-prep_')),result_desc='Neural')
+                                                            prompt="Insert test name:", initialvalue='{}_{}'.format(tested_model.name,'prep_' if preprocess else 'no-prep_')),result_desc='NeuralCzech')
 results = []
 num_of_words = 15000
 batch_size = 256
@@ -206,7 +206,7 @@ embedding_dim = 200
 tokenizer_mode = 'binary'
 
 
-datasets_helper.set_wanted_datasets([0,1,2,3,6])
+datasets_helper.set_wanted_datasets([12,13])
 while datasets_helper.next_dataset():
     val_data_count = int(datasets_helper.get_num_of_train_texts() * val_split)
     log_writer.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))

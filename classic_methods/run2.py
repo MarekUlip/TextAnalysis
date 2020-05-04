@@ -26,10 +26,10 @@ def get_time_in_millis():
 
 num_of_tests = 4
 
-test_model = {ModelType.LDA: True,
-              ModelType.LSA: True,
-              ModelType.LDA_Sklearn: True,
-              ModelType.NB: True,
+test_model = {ModelType.LDA: False,
+              ModelType.LSA: False,
+              ModelType.LDA_Sklearn: False,
+              ModelType.NB: False,
               ModelType.SVM: True,
               ModelType.DT: True,
               ModelType.RF: True
@@ -85,15 +85,15 @@ models_params = {
         }
     }
 start_time = get_time_in_millis()
-preprocess = True
+preprocess = False
 models_for_test = test_model.keys()
 for model in models_for_test:
     if not test_model[model]:
         continue
-    log_writer = LogWriter(log_file_desc='_{}_{}'.format('prep' if preprocess else 'no-prep',model.name),result_desc='Classic')
+    log_writer = LogWriter(log_file_desc='_{}_{}'.format('prep' if preprocess else 'no-prep',model.name),result_desc='ClassicCzech')
     tester = GeneralTester(log_writer, start_time)
     datasets_helper = Dataset_Helper(preprocess=preprocess)
-    datasets_helper.set_wanted_datasets([13])
+    datasets_helper.set_wanted_datasets([9,10,11,12])
     while datasets_helper.next_dataset():
         if 'topic_count' in models_params[model]:
             models_params[model]['topic_count'] = datasets_helper.get_num_of_topics()

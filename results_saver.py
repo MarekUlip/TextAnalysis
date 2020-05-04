@@ -58,7 +58,7 @@ class LogWriter:
         filename = self.path + list_name + ".csv"
         print(filename)
         os.makedirs(os.path.dirname(filename), exist_ok=True)
-        with open(filename, mode=write_mode, newline='') as list_file:
+        with open(filename, mode=write_mode, newline='',encoding='utf8') as list_file:
             list_writer = csv.writer(list_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             for item in statistics:
                 list_writer.writerow(item)

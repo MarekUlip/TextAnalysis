@@ -198,7 +198,7 @@ def measureCoherence(topic_words, log_writer, dictionary, docs,name,dataset_name
     coh_corpus = [text.split() for text in docs]
     topic_words = extract_words(topic_words)
     print(topic_words)
-    coherence = CoherenceModel(topics=topic_words,texts=coh_corpus,dictionary=dictionary,coherence='c_v',processes=1)
+    coherence = CoherenceModel(topics=topic_words,texts=coh_corpus,dictionary=dictionary,coherence='c_uci',processes=1)
     u_mass = CoherenceModel(topics=topic_words,texts=coh_corpus,dictionary=dictionary,coherence='u_mass',processes=1)
     log_writer.add_log('Coherence for model {} is {}. Its UMass is {}'.format(name,coherence.get_coherence(),u_mass.get_coherence()))
     coherences = coherence.get_coherence_per_topic()

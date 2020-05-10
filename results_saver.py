@@ -13,10 +13,12 @@ from neural_networks.aliaser import plot_model
 from dataset_loader.dataset_helper import Dataset_Helper,get_root_folder
 
 class LogWriter:
-    def __init__(self, log_file_path=None,log_file_desc="",base_time =str(int(round(time.time()) * 1000)),result_desc='Neural'):
+    def __init__(self, log_file_path=None,log_file_desc="",base_time = None,result_desc='Neural'):
         """
         :param log_file_path: path to a file into which logs will be written
         """
+        if base_time is None:
+            base_time = str(int(round(time.time()) * 1000))
         if log_file_path is None:
             self.path = get_root_folder()+"\\results\\{}\\".format(result_desc)+base_time+"{}\\".format(log_file_desc)
         else:

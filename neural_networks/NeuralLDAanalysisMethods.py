@@ -201,11 +201,11 @@ def measureCoherence(topic_words, log_writer, dictionary, docs,name,dataset_name
     coherence = CoherenceModel(topics=topic_words,texts=coh_corpus,dictionary=dictionary,coherence='c_uci',processes=1)
     u_mass = CoherenceModel(topics=topic_words,texts=coh_corpus,dictionary=dictionary,coherence='u_mass',processes=1)
     log_writer.add_log('Coherence for model {} is {}. Its UMass is {}'.format(name,coherence.get_coherence(),u_mass.get_coherence()))
-    coherences = coherence.get_coherence_per_topic()
+    """coherences = coherence.get_coherence_per_topic()
     u_masses = coherence.get_coherence_per_topic()
     for i in range(len(topic_words)):
         log_writer.add_log('Coherence for model {} and topic number {} is {}. Its UMass is {}'.format(name, i,coherences[i],
-                                                                                  u_masses[i]))
+                                                                                  u_masses[i]))"""
 
 def create_word_cloud(topics, name, log_writer,dataset_name):
     topics = swap_weights_and_words(topics)

@@ -7,6 +7,10 @@ from sklearn.svm import SVC
 
 class SupportVectorMachines:
     def __init__(self, params:dict=None):
+        """
+        Class working with SVM implementation from sklearn library.
+        :param params: dict containing init values. Accepted keys are C, kernel, degree, gamma and max_features. Check documentation of sklearn SVC for meaning of those variables.
+        """
         if params is not None:
             self.model = SVC(C=100, kernel='rbf', degree=3, gamma=1)
         else:

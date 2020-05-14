@@ -6,6 +6,20 @@ from gensim.test.utils import datapath
 
 class Lda:
     def __init__(self, topic_count=5, topic_word_count=15, alpha="auto", eta="auto", kappa=0.51, tau=2.0, minimum_probability=0.0, passes=25, iterations=25, random_state=5, params=None):
+        """
+        Class for working wit LDA from gensim library
+        :param topic_count: num of topics (or clusters) to be found
+        :param topic_word_count: num of topic words to be printed if neccessary
+        :param alpha: number of expected topics that expresses our a-priori belief for the each topics’ probability
+        :param eta: A-priori belief on word probability
+        :param kappa: A number between (0.5, 1] to weight what percentage of the previous lambda value is forgotten when each new document is examined.
+        :param tau: Hyper-parameter that controls how much we will slow down the first steps the first few iterations
+        :param minimum_probability: minimum probability to keep word
+        :param passes: Number of passes through the corpus during training.
+        :param iterations: Maximum number of iterations through the corpus when inferring the topic distribution of a corpus.
+        :param random_state: used for testing
+        :param params: dictionary containing init parameters. If this var is not none it is prevered over any other init parameter in method signature. Unspecified key value will be set to default value
+        """
         if params is not None:
             self.topic_count = params.get("topic_count", topic_count)
             self.topic_word_count = params.get("topic_word_count", topic_word_count)
@@ -56,6 +70,12 @@ class Lda:
             iterations=self.iterations)
 
     def extract_important_words(self, topics, keep_values=True):
+        """
+        Methot to obtaion topic words from this model. Prefered alternative is print_topics or show_topics from model variable
+        :param topics: topics from this model
+        :param keep_values: whether to keep numeric values of each topic word
+        :return: list of topic words (or tuples if keep values is set to true)
+        """
         d = {}
         i = 0
         for x in topics:
@@ -69,14 +89,6 @@ class Lda:
                     d[i].append(y.split("*")[1])
             i += 1
         return d
-
-    def save_model(self):
-        self.model.save(datapath(self.model_path))
-        self.dictionary.save(datapath(self.dictionary_path))
-
-    def load_model(self):
-        self.model = gensim.models.LdaModel.load(self.model_path)
-        self.dictionary = corpora.Dictionary.load(self.dictionary_path)
 
     def analyse_text(self, text):
         """

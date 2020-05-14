@@ -48,8 +48,8 @@ def process_classic_results():
             warnings.warn(e)
             continue
         frame = pd.DataFrame(all_results)
-        Path(os.getcwd() + '/compiled-results-topic-models').mkdir(parents=True, exist_ok=True)
-        frame.to_csv(os.getcwd() + '/compiled-results-topic-models/neural-topic-model-text-repre-results.csv')
+        Path(os.getcwd() + '/compiled-results-topic-models-complete').mkdir(parents=True, exist_ok=True)
+        frame.to_csv(os.getcwd() + '/compiled-results-topic-models-complete/neural-topic-model-epochs-results.csv')
 
 process_classic_results()
 

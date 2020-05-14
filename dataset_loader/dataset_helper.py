@@ -5,25 +5,33 @@ from enum import Enum
 from itertools import islice
 from pathlib import Path
 from . import params
-from .czech_lemmatizer import CzechLemmatizer
+#from .czech_lemmatizer import CzechLemmatizer
 from gensim.parsing import preprocessing
 
 from dataset_loader import czech_stemmer
 
 
 def get_root_folder():
+    """
+    Finds absolute path to root folder containing this whole project. Project root name is obtained from params.py script.
+    :return:
+    """
     path = Path(os.getcwd())
     while path.stem != params.root_folder_name:
         path = path.parent
     return str(path)
 
 class DatasetType(Enum):
+    """
+    Enum determining whether this dataset is intended to be used for train or testing. Its basically used to determined csv path to be loaded.
+    """
     TRAIN = 0
     TEST = 1
 
 maxInt = sys.maxsize
 
 while True:
+    # cycle to fine max acceptable size limit to csv.field_size_limit param. If not done some csv files will fail to load.
     # decrease the maxInt value by factor 10
     # as long as the OverflowError occurs.
 
@@ -48,17 +56,22 @@ skippable_datasets = [0,1,3,4,5,6,7,8,9]#[0,1,2,4,5,6,7,8]#[1,3,4,5,6,7]#[1,3,4,
 wanted_datasets = range(10)
 
 def preprocess_sentence(sentence):
-    #sentence = preprocessing.strip_short(sentence, 3)
-    #print(sentence)
+    """
+    General preprocess function if language cannot be determined from dataset descritpion
+    :param sentence: sentence to be preprocessed
+    :return: preprocessed string
+    """
     sentence = sentence.lower()
     sentence = " ".join(preprocessing.preprocess_string(sentence,[preprocessing.strip_punctuation,preprocessing.strip_multiple_whitespaces, preprocessing.strip_numeric, preprocessing.strip_short]))
     sentence = " ".join(word for word in sentence.split() if word not in stp_wrds)
-    #print()
-    #print(sentence)
-    #sentence = preprocessing.stem_text(sentence)
     return sentence
 
 def preprocess_sentence_eng(sentence):
+    """
+    English preprocess function for english datasets
+    :param sentence: sentence to be preprocessed
+    :return: preprocessed string
+    """
     sentence = sentence.lower()
     sentence = " ".join(preprocessing.preprocess_string(sentence, [preprocessing.strip_punctuation,
                                                                    preprocessing.strip_multiple_whitespaces,
@@ -68,6 +81,11 @@ def preprocess_sentence_eng(sentence):
     return sentence
 
 def preprocess_sentence_cz(sentence):
+    """
+    Czech preprocess function for czech datasets
+    :param sentence: sentence to be preprocessed
+    :return: preprocessed string
+    """
     sentence = sentence.lower()
     sentence = " ".join(word for word in sentence.split() if word not in cz_stopwords)
     sentence = " ".join(preprocessing.preprocess_string(sentence, [preprocessing.strip_multiple_whitespaces,
@@ -80,6 +98,10 @@ def preprocess_sentence_cz(sentence):
 
 class Dataset_Helper():
     def __init__(self,preprocess):
+        """
+        Class that helps with loading and preprocessing. It also provides info about loaded dataset such as num of topics etc.
+        :param preprocess: Indicates wheter loader should preproces dataset
+        """
         self.dataset_position = -1
         self.dataset_info = []
         self.load_dataset_info()
@@ -89,21 +111,34 @@ class Dataset_Helper():
         self.vectorized_labels = False
         self.preprocess_func = preprocess_sentence
         self.wanted_datasets = range(len(self.dataset_info)) #:list of dataset indexes to be analysed. Defaultly all indexes from file info.csv will be analysed
-        self.cz_lemmatizer = CzechLemmatizer(get_root_folder())
+        #self.cz_lemmatizer = CzechLemmatizer(get_root_folder())
 
     def load_dataset_info(self):
+        """
+        Loads info about all datasets. Info is loaded from info.csv file contained within datasets folder. Info contains num of topics, num of train and test documents, dataset language and whether labels are provided in vector form or a number
+        """
         with open(dataset_folder+"info.csv",encoding="utf-8", errors="ignore") as settings_file:
             csv_reader = csv.reader(settings_file, delimiter=';')
             for row in csv_reader:
                 self.dataset_info.append(row)
 
     def set_preprocess_function(self,lang):
+        """
+        Sets preproces function to be used when loading dataset.
+        :param lang: language of required preprocessing function. if language is not supported default english preproces function will be loaded.
+        """
         if lang == 'cz':
-            self.preprocess_func = self.preprocess_sentence_cz
+            self.preprocess_func = preprocess_sentence_cz
         elif lang == 'eng':
             self.preprocess_func = preprocess_sentence_eng
+        else:
+            self.preprocess_func = preprocess_sentence
 
     def change_dataset(self,index):
+        """
+        Changes dataset to specified index. Index refers to order of dataset in info.csv file.
+        :param index: index of a dataset to be loaded
+        """
         self.current_dataset = self.dataset_info[index]
         self.set_preprocess_function(self.dataset_info[index][5])
         self.vectorized_labels = int(self.dataset_info[index][6]) == 1
@@ -113,6 +148,10 @@ class Dataset_Helper():
         self.csv_train_file_stream = open(self.get_train_file_path(), encoding="utf-8", errors="ignore")
 
     def set_wanted_datasets(self, wanted_datasets):
+        """
+        Sets indexes of datasets that should be loaded when calling method next_dataset
+        :param wanted_datasets list with datasets indexes
+        """
         self.wanted_datasets = wanted_datasets
 
     def skip_selected_datasets(self, selected_datasets):
@@ -121,7 +160,12 @@ class Dataset_Helper():
         :param selected_datasets: indexes of datasets starting from 0 that should be ignored
         """
         self.wanted_datasets = [index for index in self.wanted_datasets if index not in selected_datasets]
+
     def next_dataset(self):
+        """
+        Loads next dataset. Order of loaded dataset is specified by info.csv file.
+        :return: True if new dataset was loaded False if reached last dataset
+        """
         self.dataset_position += 1
         while self.dataset_position not in self.wanted_datasets:
             self.dataset_position += 1
@@ -134,10 +178,21 @@ class Dataset_Helper():
         return True
 
     def convert_raw_line_to_item(self, line):
+        """
+        Helper function for loading documents and their labels. If vectorized_labels is set to True this function will consider labels part as a series of numbers and will make label a list
+        otherwise a label will be a number. It also preprocesses text if wanted.
+        :param line: csv format file line to be converted. Delimeter must be ; otherwise dataset will be wrongly proccessed
+        :return: list represtentation of document containing its label and text
+        """
         return [[int(item) for item in line[0].split(',')] if self.vectorized_labels else int(line[0]),
          self.preprocess_func(line[1]) if self.preprocess else line[1]]
 
     def get_file_stream_from_dataset_type(self, dataset_type):
+        """
+        Opens file stream for train or test path.
+        :param dataset_type: type of a dataset from which path is determined
+        :return: opened file stream.
+        """
         file_stream = None
         if dataset_type == DatasetType.TRAIN:
             file_stream = open(self.get_train_file_path(), encoding="utf-8", errors="ignore")
@@ -146,6 +201,13 @@ class Dataset_Helper():
         return file_stream
 
     def get_dataset(self, dataset_type=DatasetType.TRAIN, delimeter=';',path=None):
+        """
+        Creates list representation of dataset and returns it
+        :param dataset_type: type of dataset to be loaded
+        :param delimeter: dataset delimeter. ; is neccesary when using vector labels.
+        :param path: Path of a dataset to be loaded. If no is set it is determined from dataset type path
+        :return: list of a datset containg label and text of all documents
+        """
         if path is None:
             file_stream = self.get_file_stream_from_dataset_type(dataset_type)
         else:
@@ -156,6 +218,15 @@ class Dataset_Helper():
         return dataset
 
     def get_dataset_slice(self, start, slice_size, dataset_type=DatasetType.TRAIN, delimeter=';',path=None):
+        """
+        Loads specified part of a datset. Used in generators.
+        :param start: Start index of a slice
+        :param slice_size: size of a slice
+        :param dataset_type: type of a datset to be loaded
+        :param delimeter: delimeter to be used in csv. ; is neccesary when working with vector labels
+        :param path: Path of a dataset to be loaded. If no is set it is determined from dataset type path
+        :return: list of dataset slice
+        """
         if path is None:
             file_stream = self.get_file_stream_from_dataset_type(dataset_type)
         else:
@@ -168,34 +239,69 @@ class Dataset_Helper():
         return slice
 
     def get_texts_as_list(self, csv_file_stream=None):
+        """
+        Function that will create a list from specified file stream
+        :param csv_file_stream: file stream from which list should be created
+        :return: list of a filestream data
+        """
         return list(self.text_generator(csv_file_stream))
 
     def reset_dataset_counter(self):
+        """
+        Resets dataset index pointer so next_dataset call will again load first dataset.
+        """
         self.dataset_position = -1
 
     def get_num_of_test_texts(self):
+        """
+        :return: number of test files in current dataset
+        """
         return int(self.current_dataset[4])
 
     def check_dataset(self):
+        """
+        Checks wheter any dataset is loaded
+        :return:
+        """
         if self.current_dataset is None:
             raise ValueError("No current dataset was set.")
 
     def get_num_of_train_texts(self):
+        """
+        :return: number of train files in current dataset
+        """
         return int(self.current_dataset[3])
 
     def get_num_of_topics(self):
+        """
+        :return: number of topics in current dataset
+        """
         return int(self.current_dataset[2])
 
     def get_dataset_name(self):
+        """
+        :return: Dataset name
+        """
         return self.current_dataset[1]
 
     def get_dataset_folder_name(self):
+        """
+        :return: string of a folder name where current dataset is kept
+        """
         return self.current_dataset[0]
 
     def get_dataset_folder_path(self):
+        """
+        :return: string of a path where current dataset is kept
+        """
         return "{}{}\\".format(dataset_folder, self.get_dataset_folder_name())
 
     def get_dataset_topic_names(self,file_name='topic-names'):
+        """
+        Returns names of all topics in a current dataset
+        :param file_name: name of a file containing topic names
+        :return: list of topic names
+        """
         topic_names = []
         with open(self.get_dataset_folder_path()+"{}.csv".format(file_name),encoding="utf-8", errors="ignore") as settings_file:
             csv_reader = csv.reader(settings_file, delimiter=';')
@@ -204,24 +310,45 @@ class Dataset_Helper():
         return topic_names
 
     def get_test_file_path(self):
+        """
+        :return: path to test part of this dataset
+        """
         return self.get_dataset_folder_path()+test_file_name+".csv"
 
     def get_train_file_path(self):
+        """
+        :return: path to train part of this dataset
+        """
         return self.get_dataset_folder_path()+train_file_name+".csv"
 
     def get_tensor_board_path(self):
+        """
+        :return: path to be used when tensorBoard logging is enabled
+        """
         path = base_path + "\\tensorBoard\\"
         os.makedirs(os.path.dirname(path), exist_ok=True)
         return path
 
     def reset_file_stream(self):
+        """
+        Resets head of train file stream so it read from beggining.
+        """
         if self.csv_train_file_stream is not None:
             self.csv_train_file_stream.seek(0)
 
     def open_file_stream(self, path):
+        """
+        Opens file stream from specified path
+        :param path: path of a file to be opened
+        :return: opened file stream
+        """
         return open(path, encoding="utf-8", errors="ignore")
 
     def get_labels(self, path):
+        """
+        :param path: path of a file containg documents with labels
+        :return: list of document labels
+        """
         with self.open_file_stream(path) as csv_file_stream:
             labels = []
             for s in csv.reader(csv_file_stream, delimiter=';'):
@@ -232,17 +359,13 @@ class Dataset_Helper():
                     labels.append(int(s[0]))
         return labels
 
-    def preprocess_sentence_cz(self, sentence):
-        sentence = sentence.lower()
-        sentence = " ".join(word for word in sentence.split() if word not in cz_stopwords)
-        sentence = " ".join(preprocessing.preprocess_string(sentence, [preprocessing.strip_multiple_whitespaces,
-                                                                       preprocessing.strip_numeric,
-                                                                       preprocessing.strip_short]))
-        sentence = " ".join([self.cz_lemmatizer.lemmatize(word) for word in sentence.split()])
-        return sentence
-
 
     def text_generator(self, csv_file_stream=None):
+        """
+        Text generator created from specified file stream
+        :param csv_file_stream: file stream from which generator should be made
+        :return:
+        """
         if csv_file_stream is None:
             csv_file_stream = self.csv_train_file_stream
         for s in csv.reader(csv_file_stream, delimiter=';'):

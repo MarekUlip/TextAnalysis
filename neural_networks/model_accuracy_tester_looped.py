@@ -10,6 +10,7 @@ import sys
 import tkinter as tk
 from tkinter import simpledialog
 from neural_networks.embedding_loader import get_embedding_matrix
+from numpy.random import seed
 
 class ModelType(Enum):
     DENSE = 0
@@ -185,90 +186,97 @@ def get_model_from_type(model_type, datasets_helper, params=None):
     elif model_type == ModelType.EMBEDDING_GLOVE_TRAINED_LSTM:
         return get_embedding_glove_model(datasets_helper, params,True)
     return Sequential()
+model_types = [ModelType.DENSE,ModelType.CONV_GRU,ModelType.CONV,ModelType.LSTM,ModelType.BIDI_GRU,ModelType.GRU,ModelType.RNN]
+for model_type in model_types:
+    params = [[True, 'binary'],
+              [False, 'binary'],
+              [False, 'tfidf'],
+              [True, 'tfidf']]
+    for param in params:
+        tested_model = model_type
+        file_dir = os.path.dirname(__file__)
+        sys.path.append(file_dir)
+        root = tk.Tk()
+        root.withdraw()
 
-tested_model = ModelType.DENSE
-file_dir = os.path.dirname(__file__)
-sys.path.append(file_dir)
-root = tk.Tk()
-root.withdraw()
-
-preprocess = True
-datasets_helper = Dataset_Helper(preprocess)
-log_writer = LogWriter(log_file_desc=simpledialog.askstring(title="Test Name",
-                                                            prompt="Insert test name:", initialvalue='{}_{}'.format(tested_model.name,'prep_' if preprocess else 'no-prep_')),result_desc='NeuralCzech')
-results = []
-num_of_words = 15000
-batch_size = 256
-epochs = 50
-val_split = 0.2
-max_seq_len = 400
-embedding_dim = 200
-tokenizer_mode = 'binary'
+        preprocess = param[0]
+        datasets_helper = Dataset_Helper(preprocess)
+        results = []
+        num_of_words = 15000
+        batch_size = 256
+        epochs = 50
+        val_split = 0.2
+        max_seq_len = 400
+        embedding_dim = 200
+        tokenizer_mode = param[1]
+        log_writer = LogWriter(log_file_desc='{}_{}'.format(tested_model.name,'prep_' if preprocess else 'no-prep_'),result_desc='NeuralCzech')
 
 
-datasets_helper.set_wanted_datasets([12,13])
-while datasets_helper.next_dataset():
-    val_data_count = int(datasets_helper.get_num_of_train_texts() * val_split)
-    log_writer.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
-    tokenizer = Tokenizer(num_words=num_of_words)
-    generator = datasets_helper.text_generator()
-    log_writer.add_log("Starting preprocessing and tokenization.")
-    tokenizer.fit_on_texts(generator)
-    log_writer.add_log("Done. Building model now.")
-    params = {}
-    params['tokenizer'] = tokenizer
-    params['max_seq_len'] = max_seq_len
-    params['embedding_dim'] = embedding_dim
-    model = get_model_from_type(tested_model,datasets_helper,params)
-    model.summary()
+        datasets_helper.set_wanted_datasets([12,13])
+        while datasets_helper.next_dataset():
+            seed(42)
+            tf.random.set_seed(42)
+            val_data_count = int(datasets_helper.get_num_of_train_texts() * val_split)
+            log_writer.add_log("Starting testing dataset {}".format(datasets_helper.get_dataset_name()))
+            tokenizer = Tokenizer(num_words=num_of_words)
+            generator = datasets_helper.text_generator()
+            log_writer.add_log("Starting preprocessing and tokenization.")
+            tokenizer.fit_on_texts(generator)
+            log_writer.add_log("Done. Building model now.")
+            params = {}
+            params['tokenizer'] = tokenizer
+            params['max_seq_len'] = max_seq_len
+            params['embedding_dim'] = embedding_dim
+            model = get_model_from_type(tested_model,datasets_helper,params)
+            model.summary()
 
-    log_writer.add_log("Done. Preparing generators.")
-    log_writer.add_log(
-        'Arguments used were: batch_size={}\nNum_of_epochs={}\nembedding_dim={}\ntokenizer_mode={}'.format(batch_size, epochs,max_seq_len,tokenizer_mode))
-    early_stop = EarlyStopping(monitor='val_accuracy', patience=5, restore_best_weights=True)
-    text_generator = get_text_generator_class(tested_model)
-    train = text_generator(
-        datasets_helper.get_train_file_path(), batch_size,
-        datasets_helper.get_num_of_train_texts() - val_data_count,
-        num_of_words, tokenizer, ";",
-        datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
-        tokenizer_mode=tokenizer_mode)
-    validation = text_generator(
-        datasets_helper.get_train_file_path(), batch_size,
-        val_data_count,
-        num_of_words, tokenizer, ";",
-        datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
-        start_point=datasets_helper.get_num_of_train_texts() - val_data_count, tokenizer_mode=tokenizer_mode)
-    log_writer.add_log('Done. Starting training.')
-    history = model.fit(
-        x=train,
-        epochs=epochs,
-        callbacks=[early_stop],
-        validation_data=validation)
-    test = text_generator(
-        datasets_helper.get_test_file_path(), batch_size,
-        datasets_helper.get_num_of_test_texts(),
-        num_of_words, tokenizer, ";",
-        datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
-        tokenizer_mode=tokenizer_mode)
-    log_writer.add_log('Training done. Starting testing.')
-    result = model.evaluate(x=test)
-    print(result)
-    result.append(datasets_helper.get_dataset_name())
-    # model.summary(print_fn=result.append)
-    results.append(result)
-    log_writer.add_log("Done. Finishing this dataset.")
-    gnr = text_generator(
-        datasets_helper.get_test_file_path(), batch_size,
-        datasets_helper.get_num_of_test_texts(),
-        num_of_words, tokenizer, ";",
-        datasets_helper, max_len=max_seq_len,preprocess=preprocess, preload_dataset=False, is_predicting=True, tokenizer_mode=tokenizer_mode)
+            log_writer.add_log("Done. Preparing generators.")
+            log_writer.add_log(
+                'Arguments used were: batch_size={}\nNum_of_epochs={}\nembedding_dim={}\ntokenizer_mode={}'.format(batch_size, epochs,max_seq_len,tokenizer_mode))
+            early_stop = EarlyStopping(monitor='val_accuracy', patience=5, restore_best_weights=True)
+            text_generator = get_text_generator_class(tested_model)
+            train = text_generator(
+                datasets_helper.get_train_file_path(), batch_size,
+                datasets_helper.get_num_of_train_texts() - val_data_count,
+                num_of_words, tokenizer, ";",
+                datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
+                tokenizer_mode=tokenizer_mode)
+            validation = text_generator(
+                datasets_helper.get_train_file_path(), batch_size,
+                val_data_count,
+                num_of_words, tokenizer, ";",
+                datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
+                start_point=datasets_helper.get_num_of_train_texts() - val_data_count, tokenizer_mode=tokenizer_mode)
+            log_writer.add_log('Done. Starting training.')
+            history = model.fit(
+                x=train,
+                epochs=epochs,
+                callbacks=[early_stop],
+                validation_data=validation)
+            test = text_generator(
+                datasets_helper.get_test_file_path(), batch_size,
+                datasets_helper.get_num_of_test_texts(),
+                num_of_words, tokenizer, ";",
+                datasets_helper, max_len=max_seq_len, preprocess=preprocess, preload_dataset=True, is_predicting=False,
+                tokenizer_mode=tokenizer_mode)
+            log_writer.add_log('Training done. Starting testing.')
+            result = model.evaluate(x=test)
+            print(result)
+            result.append(datasets_helper.get_dataset_name())
+            # model.summary(print_fn=result.append)
+            results.append(result)
+            log_writer.add_log("Done. Finishing this dataset.")
+            gnr = text_generator(
+                datasets_helper.get_test_file_path(), batch_size,
+                datasets_helper.get_num_of_test_texts(),
+                num_of_words, tokenizer, ";",
+                datasets_helper, max_len=max_seq_len,preprocess=preprocess, preload_dataset=False, is_predicting=True, tokenizer_mode=tokenizer_mode)
 
-    finish_dataset(model, gnr, datasets_helper, log_writer, history)
-    log_writer.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()), True)
+            finish_dataset(model, gnr, datasets_helper, log_writer, history)
+            log_writer.add_log("Finished testing dataset {}".format(datasets_helper.get_dataset_name()), True)
 
-    log_writer.write_2D_list("results", results, 'a+')
-    results.clear()
-log_writer.end_logging()
+            log_writer.write_2D_list("results", results, 'a+')
+            results.clear()
+        log_writer.end_logging()
 
 

@@ -7,6 +7,10 @@ from sklearn.naive_bayes import MultinomialNB
 
 class NaiveBayes:
     def __init__(self,params:dict=None):
+        """
+        Class that works with Naive Bayes implementation from sklearn library.
+        :param params: dictionary of init parameters accepts keys alpha and max_features
+        """
         if params is not None:
             self.model = MultinomialNB(alpha=0.1)
         else:

@@ -45,8 +45,6 @@ class Lsa:
         for text in texts_in:
             self.topics.append(int(text[0]))
             texts.append(text[1].split())
-        #self.topics = [int(text[0]) for text in texts]
-        #texts = [text[1].split() for text in texts]
         self.dictionary = corpora.Dictionary(texts)
         self.corpus = [self.dictionary.doc2bow(doc) for doc in texts]
         if self.use_tfidf:
@@ -62,9 +60,6 @@ class Lsa:
                                             decay=self.decay)
         self.index = similarities.MatrixSimilarity(self.model[self.corpus])
 
-
-        #return lsamodel.print_topics(num_topics=self.topic_count, num_words=self.topic_word_count)
-
     def analyse_text(self, text):
         """
         Analyses provided text and returns topic index of the most possible topic
@@ -74,10 +69,8 @@ class Lsa:
         vec_bow = self.dictionary.doc2bow(text.split())
         vec_lsi = self.model[vec_bow]
         sims = self.index[vec_lsi]
-        #simsT = sorted(enumerate(sims), key=lambda item: -item[1])
         sim = max(enumerate(sims), key=lambda item: item[1])
-        #sim = simsT[0]
-        return self.topics[sim[0]]#[self.topics[sim[0]], sim[1]]#self.model[bow]
+        return self.topics[sim[0]]
 
     def get_topics(self):
         """

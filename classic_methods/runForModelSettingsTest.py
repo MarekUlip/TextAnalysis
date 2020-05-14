@@ -4,21 +4,29 @@ import random
 import numpy
 import time
 
-from methods.Lda import Lda
-from methods.Lsa import Lsa
+from .methods.Lda import Lda
+from .methods.Lsa import Lsa
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-from preprocessor.text_preprocessor import TextPreprocessor
-from tests.log_writer import LogWriter
-from tests.model_tester import ModelTester
+from .preprocessor.text_preprocessor import TextPreprocessor
+from results_saver import LogWriter
+from .tests.model_tester import ModelTester
 
 """
 Old test used to find best parameters for models LSA and LDA.
 """
 
 def create_variations(depth, field, all_vars, possibilities):
+    """
+    Recursively creates all possible combinations of provided variables
+    :param depth: Used for recursion indicates how deep recursion is in this call
+    :param field: field to be extended with new values
+    :param all_vars: all variables to be put into consideration
+    :param possibilities: result field that will contain all variations
+    :return:
+    """
     if depth == len(all_vars):
         possibilities.append(field)
         return
@@ -29,6 +37,9 @@ def create_variations(depth, field, all_vars, possibilities):
         create_variations(depth + 1, f, all_vars, possibilities)
 
 def get_time_in_millis():
+    """
+    :return: system time in milliseconds
+    """
     return int(round(time.time())*1000)
 
 

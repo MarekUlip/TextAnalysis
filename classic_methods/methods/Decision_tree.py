@@ -7,6 +7,10 @@ from sklearn.tree import DecisionTreeClassifier
 
 class DecisionTree:
     def __init__(self, params:dict=None):
+        """
+        Class for training and analysing decision tree with texts.
+        :param params: dictionary with params that decision tree should be initialized with settable param keys: {max_features}
+        """
         if params is not None:
             self.model = DecisionTreeClassifier(max_features=10000)
         else:
@@ -53,4 +57,4 @@ class DecisionTree:
         This model does not return topics. (Functuion was kept for compatability reasons)
         :return: list
         """
-        return ["Naive bayes only knows indexes. Topic words ommited."]
+        return ["Decision tree only knows indexes. Topic words ommited."]

@@ -3,6 +3,9 @@ from neural_networks.aliaser import EarlyStopping
 
 class Model:
     def __init__(self):
+        """
+        Abstract class for all neural network architectures. Contains basic parameters neccesary for correct run and logging.
+        """
         self.model = None
         self.model_name = None
         self.train_text_generator = None
@@ -19,14 +22,6 @@ class Model:
         self.optimizer = 'adam'
         self.epochs = None
         self.batch_size = None
-
-    def requires_preprocess(self):
-        return self.preprocess
-
-    def set_base_params(self, topic_nums, num_of_words):
-        self.topic_nums = topic_nums
-        self.enhanced_num_of_topics = int(np.ceil(topic_nums) * 2.5)
-        self.num_of_words = num_of_words
 
     def create_list_from_value(self,value,n):
         """
@@ -74,6 +69,9 @@ class Model:
             self.batch_size = params['batch_size']
 
     def correct_params(self):
+        """
+        Reformats some parameters set during initialization so they can be used in initialization without problems
+        """
         if type(self.num_of_neurons) is not list:
             self.num_of_neurons = self.create_list_from_value(self.num_of_neurons,self.num_of_layers)
         else:
@@ -85,28 +83,51 @@ class Model:
         if type(self.dropout_values) is not list:
             self.dropout_values = self.create_list_from_value(self.dropout_values,self.num_of_layers)
 
-    def get_description(self):
-        return self.model_name
-
     def get_uncompiled_model(self):
+        """
+        :return: uncompiled model. Also makes internal model variable uncompiled. this should be implemented by descendatns.
+        """
         pass
 
     def get_compiled_model(self):
+        """
+        :return: compiled model. Also makes internal model variable compiled. this should be implemented by descendatns.
+        """
         pass
 
     def get_compiled_static_model(self):
+        """
+        :return: compiled static model that uses default architecture and ignores architecture parameters. Also makes internal model variable compiled. this should be implemented by descendatns.
+        """
         pass
 
     def get_uncompiled_static_model(self):
+        """
+        :return: uncompiled static model that uses default architecture and ignores architecture parameters. Also makes internal model variable uncompiled. this should be implemented by descendatns.
+        """
         pass
 
     def compile_model(self):
+        """
+        Works similiar to get_compiled model but does not return its reference
+        """
         self.model = self.get_compiled_model()
 
     def get_current_model(self):
+        """
+        returns actual model variable
+        :return:
+        """
         return self.model
 
     def fit(self, datasets_helper, tokenizer, validation_count):
+        """
+        Trains model on provided dataset
+        :param datasets_helper: dataset helper containing dataset to be trained.
+        :param tokenizer: tokenizer containing dataset words
+        :param validation_count: number of validation items
+        :return: history of fit
+        """
         early_stop = EarlyStopping(monitor='val_accuracy', patience=3)
         return self.model.fit(
             x=self.train_text_generator(datasets_helper.get_train_file_path(), self.batch_size,
@@ -123,6 +144,12 @@ class Model:
                                                       start_point=datasets_helper.get_num_of_train_texts() - validation_count, max_len=self.max_len, preprocess=self.preprocess, preload_dataset=True, is_predicting=False))
 
     def evaluate(self, datasets_helper, tokenizer):
+        """
+        Returns accuracy of this model
+        :param datasets_helper: dataset helper containing dataset to be trained.
+        :param tokenizer: tokenizer containing dataset words
+        :return: list containing loss and accuracy
+        """
         return self.model.evaluate(
             x=self.train_text_generator(datasets_helper.get_test_file_path(), self.batch_size,
                                                 datasets_helper.get_num_of_test_texts(),

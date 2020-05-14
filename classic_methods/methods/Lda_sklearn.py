@@ -6,6 +6,13 @@ import numpy as np
 
 class LdaSklearn:
     def __init__(self, topic_count=5, passes=20, iterations=20, params=None):
+        """
+        Class for work with LDA implementation of sklearn library
+        :param topic_count: number of topics (clusters) to be considered during training
+        :param passes:
+        :param iterations:
+        :param params: parameters for this model represented with dictionary. None specified values will be converted into default values. keys {topic_count, passes, iterations, max_feauters)
+        """
         if params is not None:
             self.topic_count = params.get("topic_count", 3)
             self.passes = params.get("passes", passes)
@@ -35,18 +42,6 @@ class LdaSklearn:
         self.model.fit(train)
 
     def extract_important_words(self, topics, keep_values=True):
-        """
-        Not implemented for this model kept back for compatability reasons
-        """
-        pass
-
-    def save_model(self):
-        """
-        Not implemented for this model kept back for compatability reasons
-        """
-        pass
-
-    def load_model(self):
         """
         Not implemented for this model kept back for compatability reasons
         """

@@ -7,6 +7,10 @@ from sklearn.ensemble import RandomForestClassifier
 
 class RandomForest:
     def __init__(self,params:dict=None):
+        """
+        Class that works with RandomForest implementation from sklearn libray
+        :param params: dictionary of init params. Accepts keys n_estimators and max_features
+        """
         if params is not None:
             self.model = RandomForestClassifier(n_estimators=20,max_features=10000)
         else:

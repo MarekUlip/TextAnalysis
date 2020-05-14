@@ -142,7 +142,7 @@ params_bin_bin_cross = [['BinBinaryCross_L12In_0.001', keras.regularizers.l1_l2(
 # End *******
 params = [['LDA5',None,keras.regularizers.l2(0.001),keras.regularizers.l1_l2(0.001),None]]
 params = [
-          ['Yelp',6,10]]
+          ['CSFD-singlelab',14,50]]
 i = 0
 for param in params:
     seed(42)
@@ -195,7 +195,7 @@ for param in params:
     #autoencoder.compile(optimizer='adadelta', loss='mse', metrics=['accuracy'])
     autoencoder.compile(optimizer='adam', loss='binary_crossentropy',metrics=['accuracy'])#optimizer='adadelta', loss='mse', metrics=['accuracy'])
     #autoencoder.compile(optimizer='adadelta', loss='categorical_crossentropy', metrics=['accuracy'])
-    history = autoencoder.fit(matrix,matrix,batch_size=32,epochs=15,validation_data=(matrix,matrix), verbose=2, callbacks=[EarlyStopping(monitor='val_loss', min_delta=0, patience=param[2], verbose=0, mode='auto', baseline=None,
+    history = autoencoder.fit(matrix,matrix,batch_size=32,epochs=350,validation_data=(matrix,matrix), verbose=2, callbacks=[EarlyStopping(monitor='val_loss', min_delta=0, patience=param[2], verbose=0, mode='auto', baseline=None,
                       restore_best_weights=False)])
     weight_in = autoencoder.get_weights()[0]
     weight_out = autoencoder.get_weights()[2]
@@ -270,10 +270,15 @@ for param in params:
     test_model(documents, labels, neural_lda_out, log_writer,'neural_lda_out')
     #test_model(documents, labels, neural_lda_combined, log_writer,'neural_lda_combined')
 
-
-    measureCoherence(topic_words_in_max,log_writer,model.dictionary,documents,'neural_in_max',dataset_helper.get_dataset_name())
+    try:
+        measureCoherence(topic_words_in_max,log_writer,model.dictionary,documents,'neural_in_max',dataset_helper.get_dataset_name())
+    except Exception as exception:
+        print(exception)
     #measureCoherence(topic_words_in_min,log_writer,model.dictionary,documents,'neural_in_min',dataset_helper.get_dataset_name())
-    measureCoherence(topic_words_out_max,log_writer,model.dictionary,documents,'neural_out_max',dataset_helper.get_dataset_name())
+    try:
+        measureCoherence(topic_words_out_max,log_writer,model.dictionary,documents,'neural_out_max',dataset_helper.get_dataset_name())
+    except Exception as exception:
+        print(exception)
     #measureCoherence(topic_words_out_min,log_writer,model.dictionary,documents,'neural_out_min',dataset_helper.get_dataset_name())
     #measureCoherence(topic_words_combined, log_writer, model.dictionary, documents, 'neural_combined', dataset_helper.get_dataset_name())
 

@@ -12,4 +12,5 @@
 11;csfd-multilabel-balanced;10;12792;3198;eng;0
 12;csfd-multilabel-balanced-no-drama;10;10288;2572;eng;0
 13;csfd-multilabel-balanced-no-drama-vector;7;11576;2894;cz;1
-14;csfd-multilabel-balanced-no-drama-vector;10;8292;2073;cz;1
+14;csfd-single-label-no-drama-balanced;4;10812;2704;cz;0
+

@@ -5,6 +5,7 @@ from dataset_loader.dataset_helper import Dataset_Helper, DatasetType
 from classic_methods.tests.ModelType import ModelType
 from classic_methods.tests.general_tester import GeneralTester
 from results_saver import LogWriter
+import random
 import json
 
 file_dir = os.path.dirname(__file__)
@@ -74,7 +75,7 @@ models_params = {
         }
     }
 start_time = get_time_in_millis()
-preprocess = False
+preprocess = True
 models_for_test = test_model.keys()
 for model in models_for_test:
     if not test_model[model]:
@@ -82,7 +83,7 @@ for model in models_for_test:
     log_writer = LogWriter(log_file_desc='_{}_{}'.format('prep' if preprocess else 'no-prep',model.name),result_desc='Classic')
     tester = GeneralTester(log_writer, start_time)
     datasets_helper = Dataset_Helper(preprocess=preprocess)
-    datasets_helper.set_wanted_datasets([3])
+    datasets_helper.set_wanted_datasets([0,2,3])
     while datasets_helper.next_dataset():
         if 'topic_count' in models_params[model]:
             models_params[model]['topic_count'] = datasets_helper.get_num_of_topics()
@@ -95,6 +96,7 @@ for model in models_for_test:
                 models_params.pop(key)"""
         log_writer.write_any("model-settings",json.dumps(models_params[model]),'w+',True)
         seed = 5
+        random.seed(5)
 
         log_writer.add_log("Starting preprocessing texts of {} for training".format(datasets_helper.get_dataset_name()))
         texts_for_train = datasets_helper.get_dataset(DatasetType.TRAIN)

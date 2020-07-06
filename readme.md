@@ -13,7 +13,7 @@ conda activate tensorflow20
 <br/>
 <br/>
 After activating the anaconda environment you can start installing required packages: <br/>
-###Installing tensorflow
+### Installing tensorflow
 conda install -c anaconda tensorflow-gpu <br/>
 
 ### General helpful libraries
